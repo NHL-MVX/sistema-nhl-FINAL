@@ -50,6 +50,32 @@ function numOrNull(v) {
   return v === "" || v === undefined ? null : v;
 }
 
+// ===== CÁLCULOS AUTOMÁTICOS =====
+function calcularTotalCompra() {
+  const qtde = parseFloat(document.getElementById("c_quantidade").value) || 0;
+  const custo = parseFloat(document.getElementById("c_custo").value) || 0;
+  const valorPago = parseFloat(document.getElementById("c_valor_pago").value) || 0;
+
+  const total = qtde * custo;
+  document.getElementById("c_total").value = total.toFixed(2);
+  document.getElementById("c_a_pagar").value = (total - valorPago).toFixed(2);
+}
+
+function calcularTotalVenda() {
+  const qtde = parseFloat(document.getElementById("v_quantidade").value) || 0;
+  const custo = parseFloat(document.getElementById("v_custo").value) || 0;
+  const venda = parseFloat(document.getElementById("v_venda").value) || 0;
+  const recebido = parseFloat(document.getElementById("v_recebido").value) || 0;
+
+  const totalCusto = qtde * custo;
+  const totalVenda = qtde * venda;
+
+  document.getElementById("v_total_custo").value = totalCusto.toFixed(2);
+  document.getElementById("v_total_venda").value = totalVenda.toFixed(2);
+  document.getElementById("v_margem").value = (venda - custo).toFixed(2);
+  document.getElementById("v_restante").value = (totalVenda - recebido).toFixed(2);
+}
+
 // ===== UPLOAD DE ANEXO =====
 async function uploadArquivo(file, pasta) {
   if (!file) return null;
@@ -128,12 +154,12 @@ async function abrirFormCompra(id) {
     <label>Empresa</label><input id="c_empresa" value="${c.empresa||""}">
     <label>Fornecedor</label><input id="c_fornecedor" value="${c.fornecedor||""}">
     <label>Produto</label><input id="c_produto" value="${c.produto||""}">
-    <label>Quantidade</label><input id="c_quantidade" type="number" value="${c.quantidade||""}">
-    <label>Custo</label><input id="c_custo" type="number" value="${c.custo||""}">
-    <label>Total</label><input id="c_total" type="number" value="${c.total||""}">
+    <label>Quantidade</label><input id="c_quantidade" type="number" value="${c.quantidade||""}" oninput="calcularTotalCompra()">
+    <label>Custo</label><input id="c_custo" type="number" value="${c.custo||""}" oninput="calcularTotalCompra()">
+    <label>Total</label><input id="c_total" type="number" value="${c.total||""}" readonly>
     <label>Forma de Pagamento</label><input id="c_pgto" value="${c.pgto||""}">
-    <label>Valor Pago</label><input id="c_valor_pago" type="number" value="${c.valor_pago||""}">
-    <label>À Pagar</label><input id="c_a_pagar" type="number" value="${c.a_pagar||""}">
+    <label>Valor Pago</label><input id="c_valor_pago" type="number" value="${c.valor_pago||""}" oninput="calcularTotalCompra()">
+    <label>À Pagar</label><input id="c_a_pagar" type="number" value="${c.a_pagar||""}" readonly>
     <label>Status</label><input id="c_status" value="${c.status||""}">
     <label>Finalidade</label><input id="c_finalidade" value="${c.finalidade||""}">
 
@@ -265,15 +291,15 @@ async function abrirFormVenda(id) {
     <label>Cliente</label><input id="v_cliente" value="${v.cliente||""}">
     <label>Modal</label><input id="v_modal" value="${v.modal_venda||""}">
     <label>Produto</label><input id="v_produto" value="${v.produto||""}">
-    <label>Quantidade</label><input id="v_quantidade" type="number" value="${v.quantidade||""}">
-    <label>Custo</label><input id="v_custo" type="number" value="${v.custo||""}">
-    <label>Venda</label><input id="v_venda" type="number" value="${v.venda||""}">
-    <label>Margem</label><input id="v_margem" type="number" value="${v.margem||""}">
-    <label>Total Custo</label><input id="v_total_custo" type="number" value="${v.total_custo||""}">
-    <label>Total Venda</label><input id="v_total_venda" type="number" value="${v.total_venda||""}">
+    <label>Quantidade</label><input id="v_quantidade" type="number" value="${v.quantidade||""}" oninput="calcularTotalVenda()">
+    <label>Custo</label><input id="v_custo" type="number" value="${v.custo||""}" oninput="calcularTotalVenda()">
+    <label>Venda</label><input id="v_venda" type="number" value="${v.venda||""}" oninput="calcularTotalVenda()">
+    <label>Margem</label><input id="v_margem" type="number" value="${v.margem||""}" readonly>
+    <label>Total Custo</label><input id="v_total_custo" type="number" value="${v.total_custo||""}" readonly>
+    <label>Total Venda</label><input id="v_total_venda" type="number" value="${v.total_venda||""}" readonly>
     <label>Forma de Pagamento</label><input id="v_pgto" value="${v.pgto||""}">
-    <label>Recebido</label><input id="v_recebido" type="number" value="${v.recebido||""}">
-    <label>Restante</label><input id="v_restante" type="number" value="${v.restante||""}">
+    <label>Recebido</label><input id="v_recebido" type="number" value="${v.recebido||""}" oninput="calcularTotalVenda()">
+    <label>Restante</label><input id="v_restante" type="number" value="${v.restante||""}" readonly>
     <label>Comissão</label><input id="v_comissao" type="number" value="${v.comissao||""}">
     <label>Status</label><input id="v_status" value="${v.status||""}">
 
