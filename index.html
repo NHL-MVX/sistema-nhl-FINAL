@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Sistema NHL</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- TELA DE LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <h2>Acesso ao Sistema</h2>
+    <input type="text" id="loginUser" placeholder="Usuário">
+    <input type="password" id="loginPass" placeholder="Senha">
+    <button onclick="fazerLogin()">Entrar</button>
+    <p id="loginErro" class="erro"></p>
+  </div>
+</div>
+
+<!-- SISTEMA -->
+<div id="appScreen" class="hidden">
+  <header>
+    <h1>Sistema NHL</h1>
+    <button onclick="logout()">Sair</button>
+  </header>
+
+  <nav>
+    <button onclick="mostrarAba('compras')">Compras</button>
+    <button onclick="mostrarAba('vendas')">Vendas FOB</button>
+  </nav>
+
+  <!-- ABA COMPRAS -->
+  <section id="abaCompras" class="aba">
+    <h2>Compras</h2>
+    <button onclick="abrirFormCompra()">+ Nova Compra</button>
+    <table id="tabelaCompras">
+      <thead>
+        <tr>
+          <th>PI Compra</th><th>Data</th><th>Empresa</th><th>Fornecedor</th>
+          <th>Produto</th><th>Qtd</th><th>Custo</th><th>Total</th>
+          <th>Pgto</th><th>Valor Pago</th><th>À Pagar</th><th>Status</th>
+          <th>Finalidade</th><th>Anexos</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- ABA VENDAS -->
+  <section id="abaVendas" class="aba hidden">
+    <h2>Vendas FOB</h2>
+    <button onclick="abrirFormVenda()">+ Nova Venda</button>
+    <table id="tabelaVendas">
+      <thead>
+        <tr>
+          <th>PI Compra</th><th>PI Venda</th><th>Data</th><th>Cliente</th>
+          <th>Modal</th><th>Produto</th><th>Qtd</th><th>Custo</th><th>Venda</th>
+          <th>Margem</th><th>Total Custo</th><th>Total Venda</th><th>Pgto</th>
+          <th>Recebido</th><th>Restante</th><th>Comissão</th><th>Status</th>
+          <th>Anexos</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</div>
+
+<!-- MODAL FORMULÁRIO -->
+<div id="modal" class="modal hidden">
+  <div class="modal-box">
+    <span class="fechar" onclick="fecharModal()">&times;</span>
+    <div id="modalConteudo"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>
