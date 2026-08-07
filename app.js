@@ -50,32 +50,6 @@ function numOrNull(v) {
   return v === "" || v === undefined ? null : v;
 }
 
-// ===== CÁLCULOS AUTOMÁTICOS =====
-function calcularTotalCompra() {
-  const qtde = parseFloat(document.getElementById("c_quantidade").value) || 0;
-  const custo = parseFloat(document.getElementById("c_custo").value) || 0;
-  const valorPago = parseFloat(document.getElementById("c_valor_pago").value) || 0;
-
-  const total = qtde * custo;
-  document.getElementById("c_total").value = total.toFixed(2);
-  document.getElementById("c_a_pagar").value = (total - valorPago).toFixed(2);
-}
-
-function calcularTotalVenda() {
-  const qtde = parseFloat(document.getElementById("v_quantidade").value) || 0;
-  const custo = parseFloat(document.getElementById("v_custo").value) || 0;
-  const venda = parseFloat(document.getElementById("v_venda").value) || 0;
-  const recebido = parseFloat(document.getElementById("v_recebido").value) || 0;
-
-  const totalCusto = qtde * custo;
-  const totalVenda = qtde * venda;
-
-  document.getElementById("v_total_custo").value = totalCusto.toFixed(2);
-  document.getElementById("v_total_venda").value = totalVenda.toFixed(2);
-  document.getElementById("v_margem").value = (venda - custo).toFixed(2);
-  document.getElementById("v_restante").value = (totalVenda - recebido).toFixed(2);
-}
-
 // ===== UPLOAD DE ANEXO =====
 async function uploadArquivo(file, pasta) {
   if (!file) return null;
@@ -121,14 +95,20 @@ async function removerAnexo(tabela, id, coluna, index) {
 async function carregarCompras() {
   const { data, error } = await sb.from("compras").select("*").order("id", { ascending: false });
   if (error) { console.error(error); return; }
+
+  const { data: itensData } = await sb.from("compras_itens").select("compra_id");
+  const contagem = {};
+  (itensData || []).forEach(i => { contagem[i.compra_id] = (contagem[i.compra_id]||0)+1; });
+
   const tbody = document.querySelector("#tabelaCompras tbody");
   tbody.innerHTML = "";
   data.forEach(c => {
     tbody.innerHTML += `
       <tr>
         <td>${c.pi_compra||""}</td><td>${c.data||""}</td><td>${c.empresa||""}</td>
-        <td>${c.fornecedor||""}</td><td>${c.produto||""}</td><td>${c.quantidade||""}</td>
-        <td>${c.custo||""}</td><td>${c.total||""}</td><td>${c.pgto||""}</td>
+        <td>${c.fornecedor||""}</td>
+        <td>${contagem[c.id]||0} produto(s)</td>
+        <td>${c.total||""}</td><td>${c.pgto||""}</td>
         <td>${c.valor_pago||""}</td><td>${c.a_pagar||""}</td><td>${c.status||""}</td>
         <td>${c.finalidade||""}</td>
         <td>${renderAnexos(c.anexos_pi)}${renderAnexos(c.anexos_invoice)}${renderAnexos(c.anexos_packing)}${renderAnexos(c.anexos_awb_bl)}${renderAnexos(c.anexos_pgto)}</td>
@@ -140,12 +120,62 @@ async function carregarCompras() {
   });
 }
 
+function linhaItemCompra(item = {}) {
+  return `
+    <div class="item-row">
+      <input type="text" class="it_produto" placeholder="Produto" value="${item.produto||""}">
+      <input type="number" class="it_qtde" placeholder="Qtd" value="${item.quantidade||""}" oninput="calcItemCompra(this)">
+      <input type="number" class="it_custo" placeholder="Custo" value="${item.custo||""}" oninput="calcItemCompra(this)">
+      <input type="number" class="it_total" placeholder="Total" value="${item.total||""}" readonly>
+      <button type="button" class="btn-remover-item" onclick="removerItemLinha(this)">✕</button>
+    </div>`;
+}
+
+function adicionarItemCompra() {
+  document.getElementById("c_itens_container").insertAdjacentHTML("beforeend", linhaItemCompra());
+}
+
+function removerItemLinha(btn) {
+  btn.closest(".item-row").remove();
+  const container = document.getElementById("c_itens_container") || document.getElementById("v_itens_container");
+  if (container && container.id === "c_itens_container") atualizarTotalCompra();
+  if (container && container.id === "v_itens_container") atualizarTotalVenda();
+}
+
+function calcItemCompra(el) {
+  const row = el.closest(".item-row");
+  const qtde = parseFloat(row.querySelector(".it_qtde").value) || 0;
+  const custo = parseFloat(row.querySelector(".it_custo").value) || 0;
+  row.querySelector(".it_total").value = (qtde * custo).toFixed(2);
+  atualizarTotalCompra();
+}
+
+function atualizarTotalCompra() {
+  let total = 0;
+  document.querySelectorAll("#c_itens_container .it_total").forEach(inp => {
+    total += parseFloat(inp.value) || 0;
+  });
+  document.getElementById("c_total").value = total.toFixed(2);
+  const valorPago = parseFloat(document.getElementById("c_valor_pago").value) || 0;
+  document.getElementById("c_a_pagar").value = (total - valorPago).toFixed(2);
+}
+
+function recalcularAPagar() {
+  const total = parseFloat(document.getElementById("c_total").value) || 0;
+  const valorPago = parseFloat(document.getElementById("c_valor_pago").value) || 0;
+  document.getElementById("c_a_pagar").value = (total - valorPago).toFixed(2);
+}
+
 async function abrirFormCompra(id) {
   let c = {};
+  let itens = [];
   if (id) {
     const { data } = await sb.from("compras").select("*").eq("id", id).single();
     c = data || {};
+    const { data: itensData } = await sb.from("compras_itens").select("*").eq("compra_id", id);
+    itens = itensData || [];
   }
+  if (itens.length === 0) itens = [{}];
 
   document.getElementById("modalConteudo").innerHTML = `
     <h3>${id ? "Editar Compra" : "Nova Compra"}</h3>
@@ -153,12 +183,16 @@ async function abrirFormCompra(id) {
     <label>Data</label><input id="c_data" type="date" value="${c.data||""}">
     <label>Empresa</label><input id="c_empresa" value="${c.empresa||""}">
     <label>Fornecedor</label><input id="c_fornecedor" value="${c.fornecedor||""}">
-    <label>Produto</label><input id="c_produto" value="${c.produto||""}">
-    <label>Quantidade</label><input id="c_quantidade" type="number" value="${c.quantidade||""}" oninput="calcularTotalCompra()">
-    <label>Custo</label><input id="c_custo" type="number" value="${c.custo||""}" oninput="calcularTotalCompra()">
+
+    <label>Produtos</label>
+    <div id="c_itens_container">
+      ${itens.map(linhaItemCompra).join("")}
+    </div>
+    <button type="button" class="btn-add-item" onclick="adicionarItemCompra()">+ Adicionar Produto</button>
+
     <label>Total</label><input id="c_total" type="number" value="${c.total||""}" readonly>
     <label>Forma de Pagamento</label><input id="c_pgto" value="${c.pgto||""}">
-    <label>Valor Pago</label><input id="c_valor_pago" type="number" value="${c.valor_pago||""}" oninput="calcularTotalCompra()">
+    <label>Valor Pago</label><input id="c_valor_pago" type="number" value="${c.valor_pago||""}" oninput="recalcularAPagar()">
     <label>À Pagar</label><input id="c_a_pagar" type="number" value="${c.a_pagar||""}" readonly>
     <label>Status</label><input id="c_status" value="${c.status||""}">
     <label>Finalidade</label><input id="c_finalidade" value="${c.finalidade||""}">
@@ -181,6 +215,7 @@ async function abrirFormCompra(id) {
     <button class="salvar" onclick="salvarCompra(${id || "null"})">Salvar</button>
   `;
   document.getElementById("modal").classList.remove("hidden");
+  atualizarTotalCompra();
 }
 
 async function salvarCompra(id) {
@@ -192,9 +227,6 @@ async function salvarCompra(id) {
     data: val("c_data"),
     empresa: val("c_empresa"),
     fornecedor: val("c_fornecedor"),
-    produto: val("c_produto"),
-    quantidade: val("c_quantidade"),
-    custo: val("c_custo"),
     total: val("c_total"),
     pgto: val("c_pgto"),
     valor_pago: val("c_valor_pago"),
@@ -226,6 +258,7 @@ async function salvarCompra(id) {
     }
   }
 
+  let compraId = id;
   let error;
   if (id) {
     ({ error } = await sb.from("compras").update(payload).eq("id", id));
@@ -235,16 +268,37 @@ async function salvarCompra(id) {
     payload.anexos_packing = payload.anexos_packing || [];
     payload.anexos_awb_bl = payload.anexos_awb_bl || [];
     payload.anexos_pgto = payload.anexos_pgto || [];
-    ({ error } = await sb.from("compras").insert(payload));
+    const resp = await sb.from("compras").insert(payload).select().single();
+    error = resp.error;
+    compraId = resp.data?.id;
   }
 
   if (error) { alert("Erro: " + error.message); return; }
+
+  // Salvar itens
+  const itens = [];
+  document.querySelectorAll("#c_itens_container .item-row").forEach(row => {
+    const produto = row.querySelector(".it_produto").value;
+    const quantidade = parseFloat(row.querySelector(".it_qtde").value) || 0;
+    const custo = parseFloat(row.querySelector(".it_custo").value) || 0;
+    const total = parseFloat(row.querySelector(".it_total").value) || 0;
+    if (produto || quantidade || custo) {
+      itens.push({ compra_id: compraId, produto, quantidade, custo, total });
+    }
+  });
+
+  await sb.from("compras_itens").delete().eq("compra_id", compraId);
+  if (itens.length > 0) {
+    await sb.from("compras_itens").insert(itens);
+  }
+
   fecharModal();
   carregarCompras();
 }
 
 async function excluirCompra(id) {
   if (!confirm("Excluir esta compra?")) return;
+  await sb.from("compras_itens").delete().eq("compra_id", id);
   await sb.from("compras").delete().eq("id", id);
   carregarCompras();
 }
@@ -256,15 +310,20 @@ async function excluirCompra(id) {
 async function carregarVendas() {
   const { data, error } = await sb.from("vendas").select("*").order("id", { ascending: false });
   if (error) { console.error(error); return; }
+
+  const { data: itensData } = await sb.from("vendas_itens").select("venda_id");
+  const contagem = {};
+  (itensData || []).forEach(i => { contagem[i.venda_id] = (contagem[i.venda_id]||0)+1; });
+
   const tbody = document.querySelector("#tabelaVendas tbody");
   tbody.innerHTML = "";
   data.forEach(v => {
     tbody.innerHTML += `
       <tr>
         <td>${v.pi_compra||""}</td><td>${v.pi_venda||""}</td><td>${v.data||""}</td>
-        <td>${v.cliente||""}</td><td>${v.modal_venda||""}</td><td>${v.produto||""}</td>
-        <td>${v.quantidade||""}</td><td>${v.custo||""}</td><td>${v.venda||""}</td>
-        <td>${v.margem||""}</td><td>${v.total_custo||""}</td><td>${v.total_venda||""}</td>
+        <td>${v.cliente||""}</td><td>${v.modal_venda||""}</td>
+        <td>${contagem[v.id]||0} produto(s)</td>
+        <td>${v.total_custo||""}</td><td>${v.total_venda||""}</td>
         <td>${v.pgto||""}</td><td>${v.recebido||""}</td><td>${v.restante||""}</td>
         <td>${v.comissao||""}</td><td>${v.status||""}</td>
         <td>${renderAnexos(v.anexos_pi)}${renderAnexos(v.anexos_invoice)}${renderAnexos(v.anexos_packing)}${renderAnexos(v.anexos_awb_bl)}${renderAnexos(v.anexos_pagamento)}</td>
@@ -276,12 +335,72 @@ async function carregarVendas() {
   });
 }
 
+function linhaItemVenda(item = {}) {
+  return `
+    <div class="item-row item-row-venda">
+      <input type="text" class="it_produto" placeholder="Produto" value="${item.produto||""}">
+      <input type="number" class="it_qtde" placeholder="Qtd" value="${item.quantidade||""}" oninput="calcItemVenda(this)">
+      <input type="number" class="it_custo" placeholder="Custo" value="${item.custo||""}" oninput="calcItemVenda(this)">
+      <input type="number" class="it_venda" placeholder="Venda" value="${item.venda||""}" oninput="calcItemVenda(this)">
+      <input type="number" class="it_margem" placeholder="Margem %" value="${item.margem||""}" readonly>
+      <input type="number" class="it_lucro" placeholder="Lucro Bruto" value="${item.lucro_bruto||""}" readonly>
+      <input type="number" class="it_total_custo" placeholder="Total Custo" value="${item.total_custo||""}" readonly>
+      <input type="number" class="it_total_venda" placeholder="Total Venda" value="${item.total_venda||""}" readonly>
+      <button type="button" class="btn-remover-item" onclick="removerItemLinha(this)">✕</button>
+    </div>`;
+}
+
+function adicionarItemVenda() {
+  document.getElementById("v_itens_container").insertAdjacentHTML("beforeend", linhaItemVenda());
+}
+
+function calcItemVenda(el) {
+  const row = el.closest(".item-row");
+  const qtde = parseFloat(row.querySelector(".it_qtde").value) || 0;
+  const custo = parseFloat(row.querySelector(".it_custo").value) || 0;
+  const venda = parseFloat(row.querySelector(".it_venda").value) || 0;
+
+  const totalCusto = qtde * custo;
+  const totalVenda = qtde * venda;
+  const margem = venda > 0 ? (1 - (custo / venda)) * 100 : 0;
+  const lucroBruto = (venda - custo) * qtde;
+
+  row.querySelector(".it_total_custo").value = totalCusto.toFixed(2);
+  row.querySelector(".it_total_venda").value = totalVenda.toFixed(2);
+  row.querySelector(".it_margem").value = margem.toFixed(2);
+  row.querySelector(".it_lucro").value = lucroBruto.toFixed(2);
+
+  atualizarTotalVenda();
+}
+
+function atualizarTotalVenda() {
+  let totalCusto = 0, totalVenda = 0;
+  document.querySelectorAll("#v_itens_container .item-row-venda").forEach(row => {
+    totalCusto += parseFloat(row.querySelector(".it_total_custo").value) || 0;
+    totalVenda += parseFloat(row.querySelector(".it_total_venda").value) || 0;
+  });
+  document.getElementById("v_total_custo").value = totalCusto.toFixed(2);
+  document.getElementById("v_total_venda").value = totalVenda.toFixed(2);
+  const recebido = parseFloat(document.getElementById("v_recebido").value) || 0;
+  document.getElementById("v_restante").value = (totalVenda - recebido).toFixed(2);
+}
+
+function recalcularRestante() {
+  const totalVenda = parseFloat(document.getElementById("v_total_venda").value) || 0;
+  const recebido = parseFloat(document.getElementById("v_recebido").value) || 0;
+  document.getElementById("v_restante").value = (totalVenda - recebido).toFixed(2);
+}
+
 async function abrirFormVenda(id) {
   let v = {};
+  let itens = [];
   if (id) {
     const { data } = await sb.from("vendas").select("*").eq("id", id).single();
     v = data || {};
+    const { data: itensData } = await sb.from("vendas_itens").select("*").eq("venda_id", id);
+    itens = itensData || [];
   }
+  if (itens.length === 0) itens = [{}];
 
   document.getElementById("modalConteudo").innerHTML = `
     <h3>${id ? "Editar Venda FOB" : "Nova Venda FOB"}</h3>
@@ -290,15 +409,17 @@ async function abrirFormVenda(id) {
     <label>Data</label><input id="v_data" type="date" value="${v.data||""}">
     <label>Cliente</label><input id="v_cliente" value="${v.cliente||""}">
     <label>Modal</label><input id="v_modal" value="${v.modal_venda||""}">
-    <label>Produto</label><input id="v_produto" value="${v.produto||""}">
-    <label>Quantidade</label><input id="v_quantidade" type="number" value="${v.quantidade||""}" oninput="calcularTotalVenda()">
-    <label>Custo</label><input id="v_custo" type="number" value="${v.custo||""}" oninput="calcularTotalVenda()">
-    <label>Venda</label><input id="v_venda" type="number" value="${v.venda||""}" oninput="calcularTotalVenda()">
-    <label>Margem</label><input id="v_margem" type="number" value="${v.margem||""}" readonly>
+
+    <label>Produtos</label>
+    <div id="v_itens_container">
+      ${itens.map(linhaItemVenda).join("")}
+    </div>
+    <button type="button" class="btn-add-item" onclick="adicionarItemVenda()">+ Adicionar Produto</button>
+
     <label>Total Custo</label><input id="v_total_custo" type="number" value="${v.total_custo||""}" readonly>
     <label>Total Venda</label><input id="v_total_venda" type="number" value="${v.total_venda||""}" readonly>
     <label>Forma de Pagamento</label><input id="v_pgto" value="${v.pgto||""}">
-    <label>Recebido</label><input id="v_recebido" type="number" value="${v.recebido||""}" oninput="calcularTotalVenda()">
+    <label>Recebido</label><input id="v_recebido" type="number" value="${v.recebido||""}" oninput="recalcularRestante()">
     <label>Restante</label><input id="v_restante" type="number" value="${v.restante||""}" readonly>
     <label>Comissão</label><input id="v_comissao" type="number" value="${v.comissao||""}">
     <label>Status</label><input id="v_status" value="${v.status||""}">
@@ -321,6 +442,10 @@ async function abrirFormVenda(id) {
     <button class="salvar" onclick="salvarVenda(${id || "null"})">Salvar</button>
   `;
   document.getElementById("modal").classList.remove("hidden");
+
+  // Recalcular linhas já preenchidas (edição)
+  document.querySelectorAll("#v_itens_container .it_qtde").forEach(inp => calcItemVenda(inp));
+  atualizarTotalVenda();
 }
 
 async function salvarVenda(id) {
@@ -333,11 +458,6 @@ async function salvarVenda(id) {
     data: val("v_data"),
     cliente: val("v_cliente"),
     modal_venda: val("v_modal"),
-    produto: val("v_produto"),
-    quantidade: val("v_quantidade"),
-    custo: val("v_custo"),
-    venda: val("v_venda"),
-    margem: val("v_margem"),
     total_custo: val("v_total_custo"),
     total_venda: val("v_total_venda"),
     pgto: val("v_pgto"),
@@ -370,6 +490,7 @@ async function salvarVenda(id) {
     }
   }
 
+  let vendaId = id;
   let error;
   if (id) {
     ({ error } = await sb.from("vendas").update(payload).eq("id", id));
@@ -379,16 +500,41 @@ async function salvarVenda(id) {
     payload.anexos_packing = payload.anexos_packing || [];
     payload.anexos_awb_bl = payload.anexos_awb_bl || [];
     payload.anexos_pagamento = payload.anexos_pagamento || [];
-    ({ error } = await sb.from("vendas").insert(payload));
+    const resp = await sb.from("vendas").insert(payload).select().single();
+    error = resp.error;
+    vendaId = resp.data?.id;
   }
 
   if (error) { alert("Erro: " + error.message); return; }
+
+  // Salvar itens
+  const itens = [];
+  document.querySelectorAll("#v_itens_container .item-row-venda").forEach(row => {
+    const produto = row.querySelector(".it_produto").value;
+    const quantidade = parseFloat(row.querySelector(".it_qtde").value) || 0;
+    const custo = parseFloat(row.querySelector(".it_custo").value) || 0;
+    const venda = parseFloat(row.querySelector(".it_venda").value) || 0;
+    const margem = parseFloat(row.querySelector(".it_margem").value) || 0;
+    const lucro_bruto = parseFloat(row.querySelector(".it_lucro").value) || 0;
+    const total_custo = parseFloat(row.querySelector(".it_total_custo").value) || 0;
+    const total_venda = parseFloat(row.querySelector(".it_total_venda").value) || 0;
+    if (produto || quantidade || custo || venda) {
+      itens.push({ venda_id: vendaId, produto, quantidade, custo, venda, margem, lucro_bruto, total_custo, total_venda });
+    }
+  });
+
+  await sb.from("vendas_itens").delete().eq("venda_id", vendaId);
+  if (itens.length > 0) {
+    await sb.from("vendas_itens").insert(itens);
+  }
+
   fecharModal();
   carregarVendas();
 }
 
 async function excluirVenda(id) {
   if (!confirm("Excluir esta venda?")) return;
+  await sb.from("vendas_itens").delete().eq("venda_id", id);
   await sb.from("vendas").delete().eq("id", id);
   carregarVendas();
 }
