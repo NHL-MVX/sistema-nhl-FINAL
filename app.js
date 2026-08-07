@@ -96,18 +96,39 @@ async function carregarCompras() {
   const { data, error } = await sb.from("compras").select("*").order("id", { ascending: false });
   if (error) { console.error(error); return; }
 
-  const { data: itensData } = await sb.from("compras_itens").select("compra_id");
-  const contagem = {};
-  (itensData || []).forEach(i => { contagem[i.compra_id] = (contagem[i.compra_id]||0)+1; });
+  const { data: itensData } = await sb.from("compras_itens").select("*");
+  const itensPorCompra = {};
+  (itensData || []).forEach(i => {
+    if (!itensPorCompra[i.compra_id]) itensPorCompra[i.compra_id] = [];
+    itensPorCompra[i.compra_id].push(i);
+  });
 
   const tbody = document.querySelector("#tabelaCompras tbody");
   tbody.innerHTML = "";
   data.forEach(c => {
+    const itens = itensPorCompra[c.id] || [];
+    const itensHtml = itens.length === 0
+      ? "-"
+      : `<table class="mini-tabela-itens">
+          <thead>
+            <tr><th>Produto</th><th>Qtd</th><th>Custo</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            ${itens.map(i => `
+              <tr>
+                <td>${i.produto || ""}</td>
+                <td>${i.quantidade || ""}</td>
+                <td>${i.custo || ""}</td>
+                <td>${i.total || ""}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>`;
+
     tbody.innerHTML += `
       <tr>
         <td>${c.pi_compra||""}</td><td>${c.data||""}</td><td>${c.empresa||""}</td>
         <td>${c.fornecedor||""}</td>
-        <td>${contagem[c.id]||0} produto(s)</td>
+        <td>${itensHtml}</td>
         <td>${c.total||""}</td><td>${c.pgto||""}</td>
         <td>${c.valor_pago||""}</td><td>${c.a_pagar||""}</td><td>${c.status||""}</td>
         <td>${c.finalidade||""}</td>
@@ -287,7 +308,7 @@ async function salvarCompra(id) {
     }
   });
 
-    await sb.from("compras_itens").delete().eq("compra_id", compraId);
+  await sb.from("compras_itens").delete().eq("compra_id", compraId);
   if (itens.length > 0) {
     const { error: errItens } = await sb.from("compras_itens").insert(itens);
     if (errItens) {
@@ -300,7 +321,6 @@ async function salvarCompra(id) {
   fecharModal();
   carregarCompras();
 }
-
 
 async function excluirCompra(id) {
   if (!confirm("Excluir esta compra?")) return;
@@ -317,18 +337,46 @@ async function carregarVendas() {
   const { data, error } = await sb.from("vendas").select("*").order("id", { ascending: false });
   if (error) { console.error(error); return; }
 
-  const { data: itensData } = await sb.from("vendas_itens").select("venda_id");
-  const contagem = {};
-  (itensData || []).forEach(i => { contagem[i.venda_id] = (contagem[i.venda_id]||0)+1; });
+  const { data: itensData } = await sb.from("vendas_itens").select("*");
+  const itensPorVenda = {};
+  (itensData || []).forEach(i => {
+    if (!itensPorVenda[i.venda_id]) itensPorVenda[i.venda_id] = [];
+    itensPorVenda[i.venda_id].push(i);
+  });
 
   const tbody = document.querySelector("#tabelaVendas tbody");
   tbody.innerHTML = "";
   data.forEach(v => {
+    const itens = itensPorVenda[v.id] || [];
+    const itensHtml = itens.length === 0
+      ? "-"
+      : `<table class="mini-tabela-itens">
+          <thead>
+            <tr>
+              <th>Produto</th><th>Qtd</th><th>Custo</th><th>Venda</th>
+              <th>Margem %</th><th>Lucro</th><th>Tot. Custo</th><th>Tot. Venda</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itens.map(i => `
+              <tr>
+                <td>${i.produto || ""}</td>
+                <td>${i.quantidade || ""}</td>
+                <td>${i.custo || ""}</td>
+                <td>${i.venda || ""}</td>
+                <td>${i.margem || ""}</td>
+                <td>${i.lucro_bruto || ""}</td>
+                <td>${i.total_custo || ""}</td>
+                <td>${i.total_venda || ""}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>`;
+
     tbody.innerHTML += `
       <tr>
         <td>${v.pi_compra||""}</td><td>${v.pi_venda||""}</td><td>${v.data||""}</td>
         <td>${v.cliente||""}</td><td>${v.modal_venda||""}</td>
-        <td>${contagem[v.id]||0} produto(s)</td>
+        <td>${itensHtml}</td>
         <td>${v.total_custo||""}</td><td>${v.total_venda||""}</td>
         <td>${v.pgto||""}</td><td>${v.recebido||""}</td><td>${v.restante||""}</td>
         <td>${v.comissao||""}</td><td>${v.status||""}</td>
@@ -529,7 +577,7 @@ async function salvarVenda(id) {
     }
   });
 
-    await sb.from("vendas_itens").delete().eq("venda_id", vendaId);
+  await sb.from("vendas_itens").delete().eq("venda_id", vendaId);
   if (itens.length > 0) {
     const { error: errItens } = await sb.from("vendas_itens").insert(itens);
     if (errItens) {
