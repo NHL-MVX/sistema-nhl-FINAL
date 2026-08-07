@@ -348,6 +348,7 @@ async function carregarVendas() {
   tbody.innerHTML = "";
   data.forEach(v => {
     const itens = itensPorVenda[v.id] || [];
+
     const itensHtml = itens.length === 0
       ? "-"
       : `<table class="mini-tabela-itens">
@@ -372,6 +373,12 @@ async function carregarVendas() {
           </tbody>
         </table>`;
 
+    // Cálculo da margem total e lucro bruto total da operação
+    let lucroTotal = 0;
+    itens.forEach(i => { lucroTotal += parseFloat(i.lucro_bruto) || 0; });
+    const totalVenda = parseFloat(v.total_venda) || 0;
+    const margemTotal = totalVenda > 0 ? (lucroTotal / totalVenda) * 100 : 0;
+
     tbody.innerHTML += `
       <tr>
         <td>${v.pi_compra||""}</td><td>${v.pi_venda||""}</td><td>${v.data||""}</td>
@@ -379,7 +386,10 @@ async function carregarVendas() {
         <td>${itensHtml}</td>
         <td>${v.total_custo||""}</td><td>${v.total_venda||""}</td>
         <td>${v.pgto||""}</td><td>${v.recebido||""}</td><td>${v.restante||""}</td>
-        <td>${v.comissao||""}</td><td>${v.status||""}</td>
+        <td>${v.comissao||""}</td>
+        <td>${margemTotal.toFixed(2)}%</td>
+        <td>${lucroTotal.toFixed(2)}</td>
+        <td>${v.status||""}</td>
         <td>${renderAnexos(v.anexos_pi)}${renderAnexos(v.anexos_invoice)}${renderAnexos(v.anexos_packing)}${renderAnexos(v.anexos_awb_bl)}${renderAnexos(v.anexos_pagamento)}</td>
         <td>
           <button class="btn-acao" onclick="abrirFormVenda(${v.id})">Editar</button>
