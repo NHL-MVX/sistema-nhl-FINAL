@@ -84,3 +84,41 @@ tr:hover { background: #f8fafc; }
   font-size: 12px;
 }
 
+
+.item-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.item-row input {
+  flex: 1;
+  min-width: 70px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.item-row-venda input {
+  min-width: 60px;
+}
+.btn-remover-item {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.btn-add-item {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 6px 0 12px;
+  font-size: 12px;
+}
+
