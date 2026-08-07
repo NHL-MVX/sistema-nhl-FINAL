@@ -122,3 +122,17 @@ tr:hover { background: #f8fafc; }
   font-size: 12px;
 }
 
+.mini-tabela-itens {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin: 0;
+}
+.mini-tabela-itens th, .mini-tabela-itens td {
+  border: 1px solid #e2e8f0;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+.mini-tabela-itens th {
+  background: #eef2f7;
+}
