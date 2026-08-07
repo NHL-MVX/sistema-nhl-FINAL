@@ -287,14 +287,20 @@ async function salvarCompra(id) {
     }
   });
 
-  await sb.from("compras_itens").delete().eq("compra_id", compraId);
+    await sb.from("compras_itens").delete().eq("compra_id", compraId);
   if (itens.length > 0) {
-    await sb.from("compras_itens").insert(itens);
+    const { error: errItens } = await sb.from("compras_itens").insert(itens);
+    if (errItens) {
+      console.error("Erro ao salvar itens da compra:", errItens);
+      alert("Erro ao salvar itens: " + errItens.message);
+      return;
+    }
   }
 
   fecharModal();
   carregarCompras();
 }
+
 
 async function excluirCompra(id) {
   if (!confirm("Excluir esta compra?")) return;
@@ -523,9 +529,14 @@ async function salvarVenda(id) {
     }
   });
 
-  await sb.from("vendas_itens").delete().eq("venda_id", vendaId);
+    await sb.from("vendas_itens").delete().eq("venda_id", vendaId);
   if (itens.length > 0) {
-    await sb.from("vendas_itens").insert(itens);
+    const { error: errItens } = await sb.from("vendas_itens").insert(itens);
+    if (errItens) {
+      console.error("Erro ao salvar itens da venda:", errItens);
+      alert("Erro ao salvar itens: " + errItens.message);
+      return;
+    }
   }
 
   fecharModal();
