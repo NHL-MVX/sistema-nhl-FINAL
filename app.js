@@ -57,6 +57,47 @@ function formatMoeda(v) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+// ===== EXPORTAÇÃO PDF (DASHBOARDS) =====
+async function exportarDashPDF(elementId, nomeArquivo) {
+  const el = document.getElementById(elementId);
+  if (!el) { alert("Elemento não encontrado para exportação."); return; }
+
+  const canvas = await html2canvas(el, { scale: 2, backgroundColor: "#ffffff" });
+  const imgData = canvas.toDataURL("image/png");
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "mm", "a4");
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  const imgWidth = pageWidth;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+  heightLeft -= pageHeight;
+
+  while (heightLeft > 0) {
+    position = heightLeft - imgHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+  }
+
+  pdf.save(`${nomeArquivo}.pdf`);
+}
+
+// ===== EXPORTAÇÃO EXCEL (TABELAS) =====
+function exportarExcel(tableId, nomeArquivo) {
+  const table = document.getElementById(tableId);
+  if (!table) { alert("Tabela não encontrada para exportação."); return; }
+
+  const wb = XLSX.utils.table_to_book(table, { sheet: nomeArquivo });
+  XLSX.writeFile(wb, `${nomeArquivo}.xlsx`);
+}
+
 // ===== UPLOAD DE ANEXO =====
 async function uploadArquivo(file, pasta) {
   if (!file) return null;
@@ -478,302 +519,4 @@ async function salvarCompra(id) {
   });
 
   await sb.from("compras_itens").delete().eq("compra_id", compraId);
-  if (itens.length > 0) {
-    const { error: errItens } = await sb.from("compras_itens").insert(itens);
-    if (errItens) {
-      console.error("Erro ao salvar itens da compra:", errItens);
-      alert("Erro ao salvar itens: " + errItens.message);
-      return;
-    }
-  }
-
-  fecharModal();
-  carregarCompras();
-  carregarDashboardCompras();
-}
-
-async function excluirCompra(id) {
-  if (!confirm("Excluir esta compra?")) return;
-  await sb.from("compras_itens").delete().eq("compra_id", id);
-  await sb.from("compras").delete().eq("id", id);
-  carregarCompras();
-  carregarDashboardCompras();
-}
-
-// =========================================================
-// ===================== VENDAS =============================
-// =========================================================
-
-async function carregarVendas() {
-  const { data, error } = await sb.from("vendas").select("*").order("id", { ascending: false });
-  if (error) { console.error(error); return; }
-
-  const { data: itensData } = await sb.from("vendas_itens").select("*");
-  const itensPorVenda = {};
-  (itensData || []).forEach(i => {
-    if (!itensPorVenda[i.venda_id]) itensPorVenda[i.venda_id] = [];
-    itensPorVenda[i.venda_id].push(i);
-  });
-
-  const tbody = document.querySelector("#tabelaVendas tbody");
-  tbody.innerHTML = "";
-  data.forEach(v => {
-    const itens = itensPorVenda[v.id] || [];
-
-    const itensHtml = itens.length === 0
-      ? "-"
-      : `<table class="mini-tabela-itens">
-          <thead>
-            <tr>
-              <th>Produto</th><th>Qtd</th><th>Custo</th><th>Venda</th>
-              <th>Margem %</th><th>Lucro</th><th>Tot. Custo</th><th>Tot. Venda</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itens.map(i => `
-              <tr>
-                <td>${i.produto || ""}</td>
-                <td>${i.quantidade || ""}</td>
-                <td>${formatMoeda(i.custo)}</td>
-                <td>${formatMoeda(i.venda)}</td>
-                <td>${i.margem || ""}%</td>
-                <td>${formatMoeda(i.lucro_bruto)}</td>
-                <td>${formatMoeda(i.total_custo)}</td>
-                <td>${formatMoeda(i.total_venda)}</td>
-              </tr>`).join("")}
-          </tbody>
-        </table>`;
-
-    let lucroTotal = 0;
-    itens.forEach(i => { lucroTotal += parseFloat(i.lucro_bruto) || 0; });
-    const totalVenda = parseFloat(v.total_venda) || 0;
-    const margemTotal = totalVenda > 0 ? (lucroTotal / totalVenda) * 100 : 0;
-
-    tbody.innerHTML += `
-      <tr>
-        <td>${v.pi_compra||""}</td><td>${v.pi_venda||""}</td><td>${v.data||""}</td>
-        <td>${v.cliente||""}</td><td>${v.modal_venda||""}</td>
-        <td>${itensHtml}</td>
-        <td>${formatMoeda(v.total_custo)}</td><td>${formatMoeda(v.total_venda)}</td>
-        <td>${v.pgto||""}</td><td>${formatMoeda(v.recebido)}</td><td>${formatMoeda(v.restante)}</td>
-        <td>${formatMoeda(v.comissao)}</td>
-        <td>${margemTotal.toFixed(2)}%</td>
-        <td>${formatMoeda(lucroTotal)}</td>
-        <td>${v.status||""}</td>
-        <td>${renderAnexos(v.anexos_pi)}${renderAnexos(v.anexos_invoice)}${renderAnexos(v.anexos_packing)}${renderAnexos(v.anexos_awb_bl)}${renderAnexos(v.anexos_pagamento)}</td>
-        <td>
-          <button class="btn-acao" onclick="abrirFormVenda(${v.id})">Editar</button>
-          <button class="btn-acao btn-excluir" onclick="excluirVenda(${v.id})">Excluir</button>
-        </td>
-      </tr>`;
-  });
-}
-
-function linhaItemVenda(item = {}) {
-  return `
-    <div class="item-row item-row-venda">
-      <input type="text" class="it_produto" placeholder="Produto" value="${item.produto||""}">
-      <input type="number" class="it_qtde" placeholder="Qtd" value="${item.quantidade||""}" oninput="calcItemVenda(this)">
-      <input type="number" class="it_custo" placeholder="Custo" value="${item.custo||""}" oninput="calcItemVenda(this)">
-      <input type="number" class="it_venda" placeholder="Venda" value="${item.venda||""}" oninput="calcItemVenda(this)">
-      <input type="number" class="it_margem" placeholder="Margem %" value="${item.margem||""}" readonly>
-      <input type="number" class="it_lucro" placeholder="Lucro Bruto" value="${item.lucro_bruto||""}" readonly>
-      <input type="number" class="it_total_custo" placeholder="Total Custo" value="${item.total_custo||""}" readonly>
-      <input type="number" class="it_total_venda" placeholder="Total Venda" value="${item.total_venda||""}" readonly>
-      <button type="button" class="btn-remover-item" onclick="removerItemLinha(this)">✕</button>
-    </div>`;
-}
-
-function adicionarItemVenda() {
-  document.getElementById("v_itens_container").insertAdjacentHTML("beforeend", linhaItemVenda());
-}
-
-function calcItemVenda(el) {
-  const row = el.closest(".item-row");
-  const qtde = parseFloat(row.querySelector(".it_qtde").value) || 0;
-  const custo = parseFloat(row.querySelector(".it_custo").value) || 0;
-  const venda = parseFloat(row.querySelector(".it_venda").value) || 0;
-
-  const totalCusto = qtde * custo;
-  const totalVenda = qtde * venda;
-  const margem = venda > 0 ? (1 - (custo / venda)) * 100 : 0;
-  const lucroBruto = (venda - custo) * qtde;
-
-  row.querySelector(".it_total_custo").value = totalCusto.toFixed(2);
-  row.querySelector(".it_total_venda").value = totalVenda.toFixed(2);
-  row.querySelector(".it_margem").value = margem.toFixed(2);
-  row.querySelector(".it_lucro").value = lucroBruto.toFixed(2);
-
-  atualizarTotalVenda();
-}
-
-function atualizarTotalVenda() {
-  let totalCusto = 0, totalVenda = 0;
-  document.querySelectorAll("#v_itens_container .item-row-venda").forEach(row => {
-    totalCusto += parseFloat(row.querySelector(".it_total_custo").value) || 0;
-    totalVenda += parseFloat(row.querySelector(".it_total_venda").value) || 0;
-  });
-  document.getElementById("v_total_custo").value = totalCusto.toFixed(2);
-  document.getElementById("v_total_venda").value = totalVenda.toFixed(2);
-  const recebido = parseFloat(document.getElementById("v_recebido").value) || 0;
-  document.getElementById("v_restante").value = (totalVenda - recebido).toFixed(2);
-}
-
-function recalcularRestante() {
-  const totalVenda = parseFloat(document.getElementById("v_total_venda").value) || 0;
-  const recebido = parseFloat(document.getElementById("v_recebido").value) || 0;
-  document.getElementById("v_restante").value = (totalVenda - recebido).toFixed(2);
-}
-
-async function abrirFormVenda(id) {
-  let v = {};
-  let itens = [];
-  if (id) {
-    const { data } = await sb.from("vendas").select("*").eq("id", id).single();
-    v = data || {};
-    const { data: itensData } = await sb.from("vendas_itens").select("*").eq("venda_id", id);
-    itens = itensData || [];
-  }
-  if (itens.length === 0) itens = [{}];
-
-  document.getElementById("modalConteudo").innerHTML = `
-    <h3>${id ? "Editar Venda FOB" : "Nova Venda FOB"}</h3>
-    <label>PI Compra</label><input id="v_pi_compra" value="${v.pi_compra||""}">
-    <label>PI Venda</label><input id="v_pi_venda" value="${v.pi_venda||""}">
-    <label>Data</label><input id="v_data" type="date" value="${v.data||""}">
-    <label>Cliente</label><input id="v_cliente" value="${v.cliente||""}">
-    <label>Modal</label><input id="v_modal" value="${v.modal_venda||""}">
-
-    <label>Produtos</label>
-    <div id="v_itens_container">
-      ${itens.map(linhaItemVenda).join("")}
-    </div>
-    <button type="button" class="btn-add-item" onclick="adicionarItemVenda()">+ Adicionar Produto</button>
-
-    <label>Total Custo</label><input id="v_total_custo" type="number" value="${v.total_custo||""}" readonly>
-    <label>Total Venda</label><input id="v_total_venda" type="number" value="${v.total_venda||""}" readonly>
-    <label>Forma de Pagamento</label><input id="v_pgto" value="${v.pgto||""}">
-    <label>Recebido</label><input id="v_recebido" type="number" value="${v.recebido||""}" oninput="recalcularRestante()">
-    <label>Restante</label><input id="v_restante" type="number" value="${v.restante||""}" readonly>
-    <label>Comissão</label><input id="v_comissao" type="number" value="${v.comissao||""}">
-    <label>Status</label><input id="v_status" value="${v.status||""}">
-
-    <label>Anexo PI Venda</label><input id="v_anexo_pi" type="file">
-    ${renderAnexoAtual(v.anexos_pi, "vendas", id, "anexos_pi")}
-
-    <label>Anexo Invoice</label><input id="v_anexo_invoice" type="file">
-    ${renderAnexoAtual(v.anexos_invoice, "vendas", id, "anexos_invoice")}
-
-    <label>Anexo Packing List</label><input id="v_anexo_packing" type="file">
-    ${renderAnexoAtual(v.anexos_packing, "vendas", id, "anexos_packing")}
-
-    <label>Anexo AWB/BL</label><input id="v_anexo_awb" type="file">
-    ${renderAnexoAtual(v.anexos_awb_bl, "vendas", id, "anexos_awb_bl")}
-
-    <label>Anexo Pagamento</label><input id="v_anexo_pagamento" type="file">
-    ${renderAnexoAtual(v.anexos_pagamento, "vendas", id, "anexos_pagamento")}
-
-    <button class="salvar" onclick="salvarVenda(${id || "null"})">Salvar</button>
-  `;
-  document.getElementById("modal").classList.remove("hidden");
-
-  document.querySelectorAll("#v_itens_container .it_qtde").forEach(inp => calcItemVenda(inp));
-  atualizarTotalVenda();
-}
-
-async function salvarVenda(id) {
-  const val = idc => numOrNull(document.getElementById(idc).value);
-  const file = idc => document.getElementById(idc).files[0];
-
-  const payload = {
-    pi_compra: val("v_pi_compra"),
-    pi_venda: val("v_pi_venda"),
-    data: val("v_data"),
-    cliente: val("v_cliente"),
-    modal_venda: val("v_modal"),
-    total_custo: val("v_total_custo"),
-    total_venda: val("v_total_venda"),
-    pgto: val("v_pgto"),
-    recebido: val("v_recebido"),
-    restante: val("v_restante"),
-    comissao: val("v_comissao"),
-    status: val("v_status")
-  };
-
-  const anexosNovos = {
-    v_anexo_pi: "anexos_pi",
-    v_anexo_invoice: "anexos_invoice",
-    v_anexo_packing: "anexos_packing",
-    v_anexo_awb: "anexos_awb_bl",
-    v_anexo_pagamento: "anexos_pagamento"
-  };
-
-  for (const [inputId, coluna] of Object.entries(anexosNovos)) {
-    const f = file(inputId);
-    if (f) {
-      const url = await uploadArquivo(f, "vendas");
-      if (url) {
-        let existentes = [];
-        if (id) {
-          const { data } = await sb.from("vendas").select(coluna).eq("id", id).single();
-          existentes = data?.[coluna] || [];
-        }
-        payload[coluna] = [...existentes, url];
-      }
-    }
-  }
-
-  let vendaId = id;
-  let error;
-  if (id) {
-    ({ error } = await sb.from("vendas").update(payload).eq("id", id));
-  } else {
-    payload.anexos_pi = payload.anexos_pi || [];
-    payload.anexos_invoice = payload.anexos_invoice || [];
-    payload.anexos_packing = payload.anexos_packing || [];
-    payload.anexos_awb_bl = payload.anexos_awb_bl || [];
-    payload.anexos_pagamento = payload.anexos_pagamento || [];
-    const resp = await sb.from("vendas").insert(payload).select().single();
-    error = resp.error;
-    vendaId = resp.data?.id;
-  }
-
-  if (error) { alert("Erro: " + error.message); return; }
-
-  const itens = [];
-  document.querySelectorAll("#v_itens_container .item-row-venda").forEach(row => {
-    const produto = row.querySelector(".it_produto").value;
-    const quantidade = parseFloat(row.querySelector(".it_qtde").value) || 0;
-    const custo = parseFloat(row.querySelector(".it_custo").value) || 0;
-    const venda = parseFloat(row.querySelector(".it_venda").value) || 0;
-    const margem = parseFloat(row.querySelector(".it_margem").value) || 0;
-    const lucro_bruto = parseFloat(row.querySelector(".it_lucro").value) || 0;
-    const total_custo = parseFloat(row.querySelector(".it_total_custo").value) || 0;
-    const total_venda = parseFloat(row.querySelector(".it_total_venda").value) || 0;
-    if (produto || quantidade || custo || venda) {
-      itens.push({ venda_id: vendaId, produto, quantidade, custo, venda, margem, lucro_bruto, total_custo, total_venda });
-    }
-  });
-
-  await sb.from("vendas_itens").delete().eq("venda_id", vendaId);
-  if (itens.length > 0) {
-    const { error: errItens } = await sb.from("vendas_itens").insert(itens);
-    if (errItens) {
-      console.error("Erro ao salvar itens da venda:", errItens);
-      alert("Erro ao salvar itens: " + errItens.message);
-      return;
-    }
-  }
-
-  fecharModal();
-  carregarVendas();
-  carregarDashboardVendas();
-}
-
-async function excluirVenda(id) {
-  if (!confirm("Excluir esta venda?")) return;
-  await sb.from("vendas_itens").delete().eq("venda_id", id);
-  await sb.from("vendas").delete().eq("id", id);
-  carregarVendas();
-  carregarDashboardVendas();
-}
+  
