@@ -334,7 +334,7 @@ async function carregarCompras() {
         </table></div>`;
 
     tbody.innerHTML += `
-      <tr class="${classeCor}">
+      <tr class="${classeCor}" data-compra-id="${c.id}">
         <td>${c.pi_compra||""}</td><td>${c.data||""}</td><td>${c.empresa||""}</td>
         <td>${c.fornecedor||""}</td>
         <td>${itensHtml}</td>
@@ -348,6 +348,8 @@ async function carregarCompras() {
         </td>
       </tr>`;
   });
+
+  filtrarTabela();
 }
 
 function linhaItemCompra(item = {}) {
@@ -590,7 +592,7 @@ async function carregarVendas() {
     const margemTotal = totalVenda > 0 ? (lucroTotal / totalVenda) * 100 : 0;
 
     tbody.innerHTML += `
-      <tr class="${classeCor}">
+      <tr class="${classeCor}" data-venda-id="${v.id}">
         <td>${v.pi_compra||""}</td><td>${v.pi_venda||""}</td><td>${v.data||""}</td>
         <td>${v.cliente||""}</td><td>${v.modal_venda||""}</td>
         <td>${itensHtml}</td>
@@ -607,6 +609,8 @@ async function carregarVendas() {
         </td>
       </tr>`;
   });
+
+  filtrarTabela();
 }
 
 function linhaItemVenda(item = {}) {
@@ -818,28 +822,53 @@ async function excluirVenda(id) {
   carregarDashboardVendas();
 }
 
-let filtrosAtivos = {}; // { coluna: Set(valoresSelecionados) }
+// =========================================================
+// ===================== FILTROS (ESTILO EXCEL) =============
+// =========================================================
 
-function abrirFiltro(event, coluna) {
+let filtrosAtivos = {}; // { "tabela|coluna": Set(valoresSelecionados) }
+
+// índice das colunas <td> em cada tabela (0-based)
+const MAPA_COLUNAS = {
+  compras: {
+    pi_compra: 0, data: 1, empresa: 2, fornecedor: 3,
+    total: 5, pgto: 6, valor_pago: 7, a_pagar: 8, status: 9, finalidade: 10
+  },
+  vendas: {
+    pi_compra: 0, pi_venda: 1, data: 2, cliente: 3, modal: 4,
+    total_custo: 6, total_venda: 7, pgto: 8, recebido: 9, restante: 10,
+    comissao: 11, margem: 12, lucro: 13, status: 14
+  }
+};
+
+function getInfoColuna(tabelaId, coluna) {
+  const chaveTabela = tabelaId === "tabelaVendas" ? "vendas" : "compras";
+  const colIndex = MAPA_COLUNAS[chaveTabela][coluna];
+  return { tabelaId, chaveTabela, colIndex };
+}
+
+function abrirFiltro(event, tabelaId, coluna) {
   event.stopPropagation();
   fecharFiltrosAbertos();
 
-  const tabela = document.querySelector('#tabelaVendas'); // ou #tabelaCompras
-  const linhas = [...tabela.querySelectorAll('tbody tr[data-venda-id]')]; // ajuste ao seu identificador de linha-mestre
-  const colIndex = getColunaIndex(coluna); // função que retorna o índice da coluna
+  const info = getInfoColuna(tabelaId, coluna);
+  if (info.colIndex === undefined) return;
 
-  // Coleta valores únicos da coluna
+  const tabela = document.getElementById(tabelaId);
+  const linhas = [...tabela.querySelectorAll('tbody tr')];
+
   const valores = new Set();
   linhas.forEach(tr => {
-    const val = tr.querySelectorAll('td')[colIndex]?.innerText.trim();
+    const val = tr.querySelectorAll('td')[info.colIndex]?.innerText.trim();
     if (val) valores.add(val);
   });
 
+  const chaveFiltro = tabelaId + "|" + coluna;
   const dropdown = document.createElement('div');
   dropdown.className = 'filtro-dropdown';
-  dropdown.id = 'dropdown-' + coluna;
+  dropdown.id = 'dropdown-' + chaveFiltro;
 
-  const selecionados = filtrosAtivos[coluna] || new Set(valores);
+  const selecionados = filtrosAtivos[chaveFiltro] || new Set(valores);
 
   [...valores].sort().forEach(v => {
     const checked = selecionados.has(v) ? 'checked' : '';
@@ -851,8 +880,8 @@ function abrirFiltro(event, coluna) {
 
   dropdown.innerHTML += `
     <div class="filtro-acoes">
-      <button class="btn-limpar" onclick="limparFiltro('${coluna}')">Limpar</button>
-      <button class="btn-ok" onclick="aplicarFiltro('${coluna}')">OK</button>
+      <button class="btn-limpar" onclick="limparFiltro('${tabelaId}', '${coluna}')">Limpar</button>
+      <button class="btn-ok" onclick="aplicarFiltro('${tabelaId}', '${coluna}')">OK</button>
     </div>`;
 
   document.body.appendChild(dropdown);
@@ -861,32 +890,39 @@ function abrirFiltro(event, coluna) {
   dropdown.style.left = rect.left + window.scrollX + 'px';
 }
 
-function aplicarFiltro(coluna) {
-  const dropdown = document.getElementById('dropdown-' + coluna);
+function aplicarFiltro(tabelaId, coluna) {
+  const chaveFiltro = tabelaId + "|" + coluna;
+  const dropdown = document.getElementById('dropdown-' + chaveFiltro);
   const marcados = [...dropdown.querySelectorAll('input:checked')].map(i => i.value);
-  filtrosAtivos[coluna] = new Set(marcados);
+  filtrosAtivos[chaveFiltro] = new Set(marcados);
   filtrarTabela();
   dropdown.remove();
 }
 
-function limparFiltro(coluna) {
-  delete filtrosAtivos[coluna];
+function limparFiltro(tabelaId, coluna) {
+  const chaveFiltro = tabelaId + "|" + coluna;
+  delete filtrosAtivos[chaveFiltro];
   filtrarTabela();
-  document.getElementById('dropdown-' + coluna)?.remove();
+  document.getElementById('dropdown-' + chaveFiltro)?.remove();
 }
 
 function filtrarTabela() {
-  const tabela = document.querySelector('#tabelaVendas');
-  const linhas = [...tabela.querySelectorAll('tbody tr[data-venda-id]')];
+  ['tabelaVendas', 'tabelaCompras'].forEach(tabelaId => {
+    const tabela = document.getElementById(tabelaId);
+    if (!tabela) return;
+    const linhas = [...tabela.querySelectorAll('tbody tr')];
 
-  linhas.forEach(tr => {
-    let mostrar = true;
-    for (const coluna in filtrosAtivos) {
-      const colIndex = getColunaIndex(coluna);
-      const val = tr.querySelectorAll('td')[colIndex]?.innerText.trim();
-      if (!filtrosAtivos[coluna].has(val)) { mostrar = false; break; }
-    }
-    tr.style.display = mostrar ? '' : 'none';
+    linhas.forEach(tr => {
+      let mostrar = true;
+      for (const chaveFiltro in filtrosAtivos) {
+        const [tId, coluna] = chaveFiltro.split("|");
+        if (tId !== tabelaId) continue;
+        const info = getInfoColuna(tabelaId, coluna);
+        const val = tr.querySelectorAll('td')[info.colIndex]?.innerText.trim();
+        if (!filtrosAtivos[chaveFiltro].has(val)) { mostrar = false; break; }
+      }
+      tr.style.display = mostrar ? '' : 'none';
+    });
   });
 }
 
@@ -894,8 +930,3 @@ function fecharFiltrosAbertos() {
   document.querySelectorAll('.filtro-dropdown').forEach(el => el.remove());
 }
 document.addEventListener('click', fecharFiltrosAbertos);
-
-function getColunaIndex(coluna) {
-  const mapa = { cliente: 3, modal: 4, status: /* ... */ }; // ajuste aos seus índices reais
-  return mapa[coluna];
-}
