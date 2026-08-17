@@ -57,7 +57,6 @@ function formatMoeda(v) {
   return "$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-
 // ===== EXPORTAÇÃO PDF (DASHBOARDS) =====
 async function exportarDashPDF(elementId, nomeArquivo) {
   const el = document.getElementById(elementId);
@@ -321,7 +320,7 @@ async function carregarCompras() {
     const itens = itensPorCompra[c.id] || [];
     const itensHtml = itens.length === 0
       ? "-"
-      : `<table class="mini-tabela-itens">
+      : `<div class="itens-scroll"><table class="mini-tabela-itens compra">
           <thead>
             <tr><th>Produto</th><th>Qtd</th><th>Custo</th><th>Total</th></tr>
           </thead>
@@ -334,7 +333,7 @@ async function carregarCompras() {
                 <td>${formatMoeda(i.total)}</td>
               </tr>`).join("")}
           </tbody>
-        </table>`;
+        </table></div>`;
 
     tbody.innerHTML += `
       <tr>
@@ -564,7 +563,7 @@ async function carregarVendas() {
 
     const itensHtml = itens.length === 0
       ? "-"
-      : `<table class="mini-tabela-itens">
+      : `<div class="itens-scroll"><table class="mini-tabela-itens venda">
           <thead>
             <tr>
               <th>Produto</th><th>Qtd</th><th>Custo</th><th>Venda</th>
@@ -584,7 +583,7 @@ async function carregarVendas() {
                 <td>${formatMoeda(i.total_venda)}</td>
               </tr>`).join("")}
           </tbody>
-        </table>`;
+        </table></div>`;
 
     let lucroTotal = 0;
     itens.forEach(i => { lucroTotal += parseFloat(i.lucro_bruto) || 0; });
