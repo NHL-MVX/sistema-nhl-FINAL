@@ -817,3 +817,85 @@ async function excluirVenda(id) {
   carregarVendas();
   carregarDashboardVendas();
 }
+
+let filtrosAtivos = {}; // { coluna: Set(valoresSelecionados) }
+
+function abrirFiltro(event, coluna) {
+  event.stopPropagation();
+  fecharFiltrosAbertos();
+
+  const tabela = document.querySelector('#tabelaVendas'); // ou #tabelaCompras
+  const linhas = [...tabela.querySelectorAll('tbody tr[data-venda-id]')]; // ajuste ao seu identificador de linha-mestre
+  const colIndex = getColunaIndex(coluna); // função que retorna o índice da coluna
+
+  // Coleta valores únicos da coluna
+  const valores = new Set();
+  linhas.forEach(tr => {
+    const val = tr.querySelectorAll('td')[colIndex]?.innerText.trim();
+    if (val) valores.add(val);
+  });
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'filtro-dropdown';
+  dropdown.id = 'dropdown-' + coluna;
+
+  const selecionados = filtrosAtivos[coluna] || new Set(valores);
+
+  [...valores].sort().forEach(v => {
+    const checked = selecionados.has(v) ? 'checked' : '';
+    dropdown.innerHTML += `
+      <label>
+        <input type="checkbox" value="${v}" ${checked}> ${v}
+      </label>`;
+  });
+
+  dropdown.innerHTML += `
+    <div class="filtro-acoes">
+      <button class="btn-limpar" onclick="limparFiltro('${coluna}')">Limpar</button>
+      <button class="btn-ok" onclick="aplicarFiltro('${coluna}')">OK</button>
+    </div>`;
+
+  document.body.appendChild(dropdown);
+  const rect = event.target.getBoundingClientRect();
+  dropdown.style.top = rect.bottom + window.scrollY + 'px';
+  dropdown.style.left = rect.left + window.scrollX + 'px';
+}
+
+function aplicarFiltro(coluna) {
+  const dropdown = document.getElementById('dropdown-' + coluna);
+  const marcados = [...dropdown.querySelectorAll('input:checked')].map(i => i.value);
+  filtrosAtivos[coluna] = new Set(marcados);
+  filtrarTabela();
+  dropdown.remove();
+}
+
+function limparFiltro(coluna) {
+  delete filtrosAtivos[coluna];
+  filtrarTabela();
+  document.getElementById('dropdown-' + coluna)?.remove();
+}
+
+function filtrarTabela() {
+  const tabela = document.querySelector('#tabelaVendas');
+  const linhas = [...tabela.querySelectorAll('tbody tr[data-venda-id]')];
+
+  linhas.forEach(tr => {
+    let mostrar = true;
+    for (const coluna in filtrosAtivos) {
+      const colIndex = getColunaIndex(coluna);
+      const val = tr.querySelectorAll('td')[colIndex]?.innerText.trim();
+      if (!filtrosAtivos[coluna].has(val)) { mostrar = false; break; }
+    }
+    tr.style.display = mostrar ? '' : 'none';
+  });
+}
+
+function fecharFiltrosAbertos() {
+  document.querySelectorAll('.filtro-dropdown').forEach(el => el.remove());
+}
+document.addEventListener('click', fecharFiltrosAbertos);
+
+function getColunaIndex(coluna) {
+  const mapa = { cliente: 3, modal: 4, status: /* ... */ }; // ajuste aos seus índices reais
+  return mapa[coluna];
+}
