@@ -199,14 +199,15 @@ nav button:hover { background: #dbe4f0; }
   border-bottom: 4px solid #cfdaeb;
 }
 
-/* Cor de fundo por VENDA/COMPRA (alternância mais contrastante) */
-#tabelaCompras tbody tr:nth-child(odd),
-#tabelaVendas tbody tr:nth-child(odd) {
+/* Cor de fundo por VENDA/COMPRA — controlada via classe (definida no JS pelo índice
+   da venda, NÃO pelo nth-child, para não quebrar quando há várias <tr> por venda) */
+#tabelaCompras tbody tr.linha-clara,
+#tabelaVendas tbody tr.linha-clara {
   background: #ffffff;
 }
-#tabelaCompras tbody tr:nth-child(even),
-#tabelaVendas tbody tr:nth-child(even) {
-  background: #dde6f3; /* azul mais forte para destoar melhor */
+#tabelaCompras tbody tr.linha-escura,
+#tabelaVendas tbody tr.linha-escura {
+  background: #dde6f3;
 }
 #tabelaCompras tbody tr:hover,
 #tabelaVendas tbody tr:hover {
@@ -250,7 +251,7 @@ nav button:hover { background: #dbe4f0; }
 }
 .mini-tabela-itens td {
   padding: 4px 6px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: none; /* sem separador entre produtos da mesma venda */
   font-size: 11px;
   text-align: right;
   white-space: nowrap;
@@ -268,7 +269,6 @@ nav button:hover { background: #dbe4f0; }
 }
 
 /* ===== MARCADORES DE SCROLL (setas ▲▼) ===== */
-/* Ficam fixos na borda do container, não sobem/desçem junto com o conteúdo */
 .itens-scroll .seta-scroll,
 .itens-scroll .scroll-indicator {
   position: sticky;
