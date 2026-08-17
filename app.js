@@ -168,6 +168,9 @@ async function carregarDashboardVendas() {
   const lucroBrutoTotal = listaItens.reduce((s, i) => s + (parseFloat(i.lucro_bruto) || 0), 0);
   const qtdVendas = lista.length;
 
+  const margemTotal = totalVenda > 0 ? (lucroBrutoTotal / totalVenda) * 100 : 0;
+  const ticketMedio = qtdVendas > 0 ? totalVenda / qtdVendas : 0;
+
   document.getElementById("cardsDashVendas").innerHTML = `
     <div class="card-dash">
       <span class="card-titulo">Total de Vendas</span>
@@ -184,6 +187,14 @@ async function carregarDashboardVendas() {
     <div class="card-dash">
       <span class="card-titulo">Lucro Bruto Total</span>
       <span class="card-valor destaque-verde">${formatMoeda(lucroBrutoTotal)}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Margem Total</span>
+      <span class="card-valor destaque-verde">${margemTotal.toFixed(1)}%</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Ticket Médio</span>
+      <span class="card-valor">${formatMoeda(ticketMedio)}</span>
     </div>
     <div class="card-dash">
       <span class="card-titulo">Recebido</span>
@@ -214,6 +225,37 @@ async function carregarDashboardVendas() {
     : topClientes.map(([nome, valor]) => `
         <tr><td>${nome}</td><td>${formatMoeda(valor)}</td></tr>
       `).join("");
+
+  // Faturamento por item (produto)
+  const porProduto = {};
+  listaItens.forEach(i => {
+    const nome = i.produto || "Não informado";
+    if (!porProduto[nome]) {
+      porProduto[nome] = { qtd: 0, faturamento: 0, custo: 0, lucro: 0 };
+    }
+    porProduto[nome].qtd += parseFloat(i.quantidade) || 0;
+    porProduto[nome].faturamento += parseFloat(i.total_venda) || 0;
+    porProduto[nome].custo += parseFloat(i.total_custo) || 0;
+    porProduto[nome].lucro += parseFloat(i.lucro_bruto) || 0;
+  });
+
+  const ranking = Object.entries(porProduto)
+    .sort((a, b) => b[1].faturamento - a[1].faturamento);
+
+  document.getElementById("faturamentoItens").innerHTML = ranking.length === 0
+    ? `<tr><td colspan="6">Sem dados</td></tr>`
+    : ranking.map(([nome, d]) => {
+        const margem = d.faturamento > 0 ? (d.lucro / d.faturamento) * 100 : 0;
+        return `
+          <tr>
+            <td>${nome}</td>
+            <td>${d.qtd}</td>
+            <td>${formatMoeda(d.faturamento)}</td>
+            <td>${formatMoeda(d.custo)}</td>
+            <td class="${d.lucro >= 0 ? 'destaque-verde' : 'destaque-vermelho'}">${formatMoeda(d.lucro)}</td>
+            <td class="${margem >= 0 ? 'destaque-verde' : 'destaque-vermelho'}">${margem.toFixed(1)}%</td>
+          </tr>`;
+      }).join("");
 }
 
 // =========================================================
@@ -424,7 +466,6 @@ async function salvarCompra(id) {
 
   if (error) { alert("Erro: " + error.message); return; }
 
-  // Salvar itens
   const itens = [];
   document.querySelectorAll("#c_itens_container .item-row").forEach(row => {
     const produto = row.querySelector(".it_produto").value;
