@@ -177,7 +177,6 @@ async function carregarDashboardCompras() {
     </div>
   `;
 
-  // Top fornecedores
   const porFornecedor = {};
   lista.forEach(c => {
     const nome = c.fornecedor || "Não informado";
@@ -251,7 +250,6 @@ async function carregarDashboardVendas() {
     </div>
   `;
 
-  // Top clientes
   const porCliente = {};
   lista.forEach(v => {
     const nome = v.cliente || "Não informado";
@@ -267,7 +265,6 @@ async function carregarDashboardVendas() {
         <tr><td>${nome}</td><td>${formatMoeda(valor)}</td></tr>
       `).join("");
 
-  // Faturamento por item (produto)
   const porProduto = {};
   listaItens.forEach(i => {
     const nome = i.produto || "Não informado";
@@ -316,7 +313,8 @@ async function carregarCompras() {
 
   const tbody = document.querySelector("#tabelaCompras tbody");
   tbody.innerHTML = "";
-  data.forEach(c => {
+  data.forEach((c, index) => {
+    const classeCor = index % 2 === 0 ? "linha-clara" : "linha-escura";
     const itens = itensPorCompra[c.id] || [];
     const itensHtml = itens.length === 0
       ? "-"
@@ -336,7 +334,7 @@ async function carregarCompras() {
         </table></div>`;
 
     tbody.innerHTML += `
-      <tr>
+      <tr class="${classeCor}">
         <td>${c.pi_compra||""}</td><td>${c.data||""}</td><td>${c.empresa||""}</td>
         <td>${c.fornecedor||""}</td>
         <td>${itensHtml}</td>
@@ -558,7 +556,8 @@ async function carregarVendas() {
 
   const tbody = document.querySelector("#tabelaVendas tbody");
   tbody.innerHTML = "";
-  data.forEach(v => {
+  data.forEach((v, index) => {
+    const classeCor = index % 2 === 0 ? "linha-clara" : "linha-escura";
     const itens = itensPorVenda[v.id] || [];
 
     const itensHtml = itens.length === 0
@@ -591,7 +590,7 @@ async function carregarVendas() {
     const margemTotal = totalVenda > 0 ? (lucroTotal / totalVenda) * 100 : 0;
 
     tbody.innerHTML += `
-      <tr>
+      <tr class="${classeCor}">
         <td>${v.pi_compra||""}</td><td>${v.pi_venda||""}</td><td>${v.data||""}</td>
         <td>${v.cliente||""}</td><td>${v.modal_venda||""}</td>
         <td>${itensHtml}</td>
@@ -818,5 +817,3 @@ async function excluirVenda(id) {
   carregarVendas();
   carregarDashboardVendas();
 }
-const classeCor = index % 2 === 0 ? "linha-clara" : "linha-escura";
-// <tr class="${classeCor}"> ...
