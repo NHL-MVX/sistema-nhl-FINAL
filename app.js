@@ -54,8 +54,9 @@ function numOrNull(v) {
 
 function formatMoeda(v) {
   const n = parseFloat(v) || 0;
-  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return "$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
 
 // ===== EXPORTAÇÃO PDF (DASHBOARDS) =====
 async function exportarDashPDF(elementId, nomeArquivo) {
