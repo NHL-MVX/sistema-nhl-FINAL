@@ -139,17 +139,17 @@ tr:hover { background: #f8fafc; }
 #tabelaVendas td:nth-child(6) {
   padding: 0;
   vertical-align: top;
-  width: 900px;      /* fixo, não min-width — garante mesma largura em todas as linhas */
+  width: 900px;
   max-width: 900px;
 }
 
-/* ===== Mini-tabela de itens: colunas fixas e padronizadas entre todas as mini-tabelas ===== */
+/* ===== Mini-tabela de itens ===== */
 .mini-tabela-itens {
   width: 100%;
   border-collapse: collapse;
   font-size: 11px;
   margin: 0;
-  table-layout: fixed; /* força larguras fixas e iguais entre todas as mini-tabelas */
+  table-layout: fixed;
 }
 
 .mini-tabela-itens th,
@@ -159,7 +159,7 @@ tr:hover { background: #f8fafc; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: right; /* números alinhados à direita */
+  text-align: right;
 }
 
 .mini-tabela-itens th {
@@ -176,19 +176,22 @@ tr:hover { background: #f8fafc; }
   background: #f1f5f9;
 }
 
-/* Larguras fixas e padronizadas por coluna (mesma proporção em todas as mini-tabelas) */
 .mini-tabela-itens th:nth-child(1),
 .mini-tabela-itens td:nth-child(1) {
   width: 26%;
   text-align: left;
-  white-space: normal; /* nome do produto pode quebrar linha */
+  white-space: normal;
 }
 .mini-tabela-itens th:nth-child(2),
-.mini-tabela-itens td:nth-child(2) { width: 8%; }   /* Qtd */
+.mini-tabela-itens td:nth-child(2) { width: 8%; }
 .mini-tabela-itens th:nth-child(3),
-.mini-tabela-itens td:nth-child(3) { width: 12%; }  /* Custo */
+.mini-tabela-itens td:nth-child(3) { width: 12%; }
 .mini-tabela-itens th:nth-child(4),
-.mini-tabela-itens td:nth-child(4) { width: 12%; }  /* Venda */
+.mini-tabela-itens td:nth-child(4) { width: 12%; }
+
+/* =========================================================
+   ===================== DASHBOARDS =========================
+   ========================================================= */
 
 .dashboard-titulo {
   font-size: 24px;
@@ -204,6 +207,50 @@ tr:hover { background: #f8fafc; }
   color: #1a202c;
 }
 
+.dash-bloco { margin-top: 24px; }
+
+/* Container dos cards (classe usada no app.js) */
+.cards-dash {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Cada card individual (classe usada no app.js) */
+.card-dash {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s ease;
+}
+
+.card-dash:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.card-dash .card-titulo {
+  font-size: 13px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.card-dash .card-valor {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+/* Destaques de cor usados dentro do card-valor (spans) */
+.card-valor.destaque-verde { color: #38a169; }
+.card-valor.destaque-vermelho { color: #e53e3e; }
+
+/* ===== Compatibilidade com blocos que usam .cards-grid / .card (ex: exemplos estáticos) ===== */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -233,13 +280,29 @@ tr:hover { background: #f8fafc; }
   font-weight: 500;
 }
 
-.card-valor {
+.card .card-valor {
   font-size: 22px;
   font-weight: 700;
   color: #2d3748;
 }
 
-/* Destaques por cor */
 .card.destaque-lucro .card-valor { color: #38a169; }
 .card.destaque-recebido .card-valor { color: #3182ce; }
 .card.destaque-receber .card-valor { color: #e53e3e; }
+
+/* ===== Tabelas de dashboard (Top Fornecedores, Top Clientes, Faturamento por Item) ===== */
+.tabela-dash {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.tabela-dash th,
+.tabela-dash td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.tabela-dash th { background: #f1f5f9; }
+.tabela-dash tr:hover { background: #f8fafc; }
