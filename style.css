@@ -195,10 +195,17 @@ nav button:hover { background: #dbe4f0; }
 }
 
 /* Separador visual entre cada venda/compra (linha inteira) */
-#tabelaVendas tbody tr,
-#tabelaCompras tbody tr {
-  border-bottom: 4px solid #d7e0ec;
+/* Separador visual entre cada venda/compra */
+#tabelaCompras td,
+#tabelaVendas td {
+  border-bottom: 3px solid #d7e0ec;
 }
+
+/* Mas as linhas internas do mini-table (itens) não devem ter essa borda grossa */
+.mini-tabela-itens td {
+  border-bottom: 1px solid #eee !important;
+}
+
 
 #tabelaCompras tbody tr:nth-child(even),
 #tabelaVendas tbody tr:nth-child(even) {
