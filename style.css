@@ -191,6 +191,7 @@ nav button:hover { background: #dbe4f0; }
   vertical-align: top;
   font-size: 12px;
   border: none;
+  text-align: center;
 }
 
 /* Separador visual entre cada venda/compra (linha inteira = 1 registro) */
@@ -199,8 +200,7 @@ nav button:hover { background: #dbe4f0; }
   border-bottom: 4px solid #cfdaeb;
 }
 
-/* Cor de fundo por VENDA/COMPRA — controlada via classe (definida no JS pelo índice
-   da venda, NÃO pelo nth-child, para não quebrar quando há várias <tr> por venda) */
+/* Cor de fundo por VENDA/COMPRA (controlada via classe no JS) */
 #tabelaCompras tbody tr.linha-clara,
 #tabelaVendas tbody tr.linha-clara {
   background: #ffffff;
@@ -214,84 +214,16 @@ nav button:hover { background: #dbe4f0; }
   background: #cddbee !important;
 }
 
-/* Coluna Itens (mini-tabela dentro) sem padding extra */
-#tabelaCompras td:has(table),
-#tabelaVendas td:has(table) {
-  padding: 0;
-}
-
-.itens-scroll {
-  position: relative;
-  max-height: 220px;
-  overflow-y: auto;
-  overflow-x: auto;
-}
-
-/* ===== MINI-TABELA DE ITENS (dentro da célula Itens) ===== */
-.mini-tabela-itens {
-  border-collapse: collapse;
+/* ===== LINHAS EMPILHADAS DE PRODUTOS (dentro de cada coluna) ===== */
+.linha-item {
+  padding: 4px 2px;
+  border-bottom: 1px solid #e2e8f0;
   font-size: 11px;
-  width: 100%;
-  table-layout: fixed;
-  background: transparent; /* herda a cor da linha pai (venda/compra) */
-}
-
-.mini-tabela-itens thead {
-  display: none;
-}
-
-.mini-tabela-itens th {
-  background: #5b7aa8;
-  color: #fff;
-  padding: 4px 6px;
-  font-weight: 600;
-  font-size: 10px;
-  text-align: center;
   white-space: nowrap;
-  border: none;
+  min-height: 20px;
 }
-.mini-tabela-itens td {
-  padding: 4px 6px;
-  border: none !important; /* remove qualquer separador entre produtos */
-  font-size: 11px;
-  text-align: right;
-  white-space: nowrap;
-  background: transparent; /* todos os produtos da mesma venda ficam com a MESMA cor */
-}
-.mini-tabela-itens td:first-child {
-  text-align: left;
-  white-space: normal;
-}
-.mini-tabela-itens tr {
-  border: none !important;
-}
-
-/* Removido o zebra por produto — todo produto dentro da mesma venda usa a cor do grupo */
-.mini-tabela-itens tbody tr:nth-child(even),
-.mini-tabela-itens tbody tr:hover {
-  background: transparent;
-}
-
-/* ===== MARCADORES DE SCROLL (setas ▲▼) ===== */
-.itens-scroll .seta-scroll,
-.itens-scroll .scroll-indicator {
-  position: sticky;
-  right: 2px;
-  z-index: 3;
-  display: block;
-  text-align: center;
-  font-size: 10px;
-  color: #64748b;
-  pointer-events: none;
-  background: inherit;
-}
-.itens-scroll .seta-scroll.topo,
-.itens-scroll .scroll-indicator.topo {
-  top: 0;
-}
-.itens-scroll .seta-scroll.baixo,
-.itens-scroll .scroll-indicator.baixo {
-  bottom: 0;
+.linha-item:last-child {
+  border-bottom: none;
 }
 
 /* ===== BOTÕES DE AÇÃO (Editar/Excluir) ===== */
@@ -419,48 +351,3 @@ nav button:hover { background: #dbe4f0; }
   color: #2c4a7c !important;
   font-size: 12px;
 }
-.filtro-icone {
-  cursor: pointer;
-  margin-left: 4px;
-  font-size: 10px;
-  color: #cfdaeb;
-}
-.filtro-icone:hover { color: #fff; }
-
-.filtro-dropdown {
-  position: absolute;
-  background: #fff;
-  color: #1e293b;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  padding: 8px;
-  max-height: 260px;
-  overflow-y: auto;
-  z-index: 500;
-  font-size: 12px;
-  min-width: 180px;
-}
-.filtro-dropdown label {
-  display: block;
-  padding: 3px 4px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.filtro-dropdown label:hover { background: #eef2f8; }
-.filtro-dropdown .filtro-acoes {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  gap: 6px;
-}
-.filtro-dropdown .filtro-acoes button {
-  flex: 1;
-  font-size: 11px;
-  padding: 4px 6px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.filtro-dropdown .btn-ok { background: #2c4a7c; color: #fff; }
-.filtro-dropdown .btn-limpar { background: #eef2f8; color: #2c4a7c; }
