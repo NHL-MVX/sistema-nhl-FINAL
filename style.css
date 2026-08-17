@@ -134,20 +134,50 @@ tr:hover { background: #f8fafc; }
   font-size: 12px;
 }
 
+/* Célula "Itens" da tabela principal não deve encolher demais */
+#tabelaCompras td:nth-child(5),
+#tabelaVendas td:nth-child(6) {
+  padding: 0;
+  vertical-align: top;
+  min-width: 480px;
+}
+
 .mini-tabela-itens {
   width: 100%;
   border-collapse: collapse;
   font-size: 11px;
   margin: 0;
 }
-.mini-tabela-itens th, .mini-tabela-itens td {
+
+.mini-tabela-itens th,
+.mini-tabela-itens td {
   border: 1px solid #e2e8f0;
-  padding: 3px 6px;
+  padding: 4px 8px;
   white-space: nowrap;
+  text-align: right; /* números alinhados à direita */
 }
+
+/* Coluna "Produto" alinhada à esquerda e com largura mínima */
+.mini-tabela-itens th:first-child,
+.mini-tabela-itens td:first-child {
+  text-align: left;
+  min-width: 140px;
+}
+
 .mini-tabela-itens th {
   background: #eef2f7;
+  font-weight: 600;
+  color: #475569;
 }
+
+.mini-tabela-itens tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+
+.mini-tabela-itens tbody tr:hover {
+  background: #f1f5f9;
+}
+
 .cards-dash {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
