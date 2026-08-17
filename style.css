@@ -134,34 +134,32 @@ tr:hover { background: #f8fafc; }
   font-size: 12px;
 }
 
-/* Célula "Itens" da tabela principal não deve encolher demais */
+/* ===== Célula "Itens" da tabela principal: largura FIXA e igual em todas as linhas ===== */
 #tabelaCompras td:nth-child(5),
 #tabelaVendas td:nth-child(6) {
   padding: 0;
   vertical-align: top;
-  min-width: 480px;
+  width: 900px;      /* fixo, não min-width — garante mesma largura em todas as linhas */
+  max-width: 900px;
 }
 
+/* ===== Mini-tabela de itens: colunas fixas e padronizadas entre todas as mini-tabelas ===== */
 .mini-tabela-itens {
   width: 100%;
   border-collapse: collapse;
   font-size: 11px;
   margin: 0;
+  table-layout: fixed; /* força larguras fixas e iguais entre todas as mini-tabelas */
 }
 
 .mini-tabela-itens th,
 .mini-tabela-itens td {
   border: 1px solid #e2e8f0;
-  padding: 4px 8px;
+  padding: 4px 6px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: right; /* números alinhados à direita */
-}
-
-/* Coluna "Produto" alinhada à esquerda e com largura mínima */
-.mini-tabela-itens th:first-child,
-.mini-tabela-itens td:first-child {
-  text-align: left;
-  min-width: 140px;
 }
 
 .mini-tabela-itens th {
@@ -178,55 +176,16 @@ tr:hover { background: #f8fafc; }
   background: #f1f5f9;
 }
 
-.cards-dash {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin: 20px 0;
-}
-
-.card-dash {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.card-titulo {
-  font-size: 13px;
-  color: #64748b;
-  font-weight: 600;
-}
-
-.card-valor {
-  font-size: 22px;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.destaque-vermelho { color: #dc2626; }
-.destaque-verde { color: #16a34a; }
-
-.dash-bloco {
-  margin-top: 25px;
-}
-
-.tabela-dash {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.tabela-dash th, .tabela-dash td {
-  border: 1px solid #e2e8f0;
-  padding: 8px 12px;
+/* Larguras fixas e padronizadas por coluna (mesma proporção em todas as mini-tabelas) */
+.mini-tabela-itens th:nth-child(1),
+.mini-tabela-itens td:nth-child(1) {
+  width: 26%;
   text-align: left;
+  white-space: normal; /* nome do produto pode quebrar linha */
 }
-
-.tabela-dash th {
-  background: #eef2f7;
-}
+.mini-tabela-itens th:nth-child(2),
+.mini-tabela-itens td:nth-child(2) { width: 8%; }   /* Qtd */
+.mini-tabela-itens th:nth-child(3),
+.mini-tabela-itens td:nth-child(3) { width: 12%; }  /* Custo */
+.mini-tabela-itens th:nth-child(4),
+.mini-tabela-itens td:nth-child(4) { width: 12%; }  /* Venda */
