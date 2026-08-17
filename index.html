@@ -98,17 +98,20 @@
     <table id="tabelaCompras">
       <thead>
         <tr>
-          <th>PI Compra <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaCompras','pi_compra')">▾</span></th>
-          <th>Data <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaCompras','data')">▾</span></th>
-          <th>Empresa <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaCompras','empresa')">▾</span></th>
-          <th>Fornecedor <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaCompras','fornecedor')">▾</span></th>
-          <th>Itens</th>
+          <th>PI Compra</th>
+          <th>Data</th>
+          <th>Empresa</th>
+          <th>Fornecedor</th>
+          <th>Produto</th>
+          <th>Quantidade</th>
+          <th>Custo</th>
+          <th>Total Item</th>
           <th>Total</th>
-          <th>Pgto <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaCompras','pgto')">▾</span></th>
+          <th>Pgto</th>
           <th>Valor Pago</th>
           <th>À Pagar</th>
-          <th>Status <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaCompras','status')">▾</span></th>
-          <th>Finalidade <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaCompras','finalidade')">▾</span></th>
+          <th>Status</th>
+          <th>Finalidade</th>
           <th>Anexos</th>
           <th>Ações</th>
         </tr>
@@ -129,43 +132,4 @@
     <table id="tabelaVendas">
       <thead>
         <tr>
-          <th>PI Compra <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaVendas','pi_compra')">▾</span></th>
-          <th>PI Venda <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaVendas','pi_venda')">▾</span></th>
-          <th>Data <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaVendas','data')">▾</span></th>
-          <th>Cliente <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaVendas','cliente')">▾</span></th>
-          <th>Modal <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaVendas','modal')">▾</span></th>
-          <th>Itens</th>
-          <th>Total Custo</th>
-          <th>Total Venda</th>
-          <th>Pgto <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaVendas','pgto')">▾</span></th>
-          <th>Recebido</th>
-          <th>Restante</th>
-          <th>Comissão</th>
-          <th>Margem Total %</th>
-          <th>Lucro Bruto Total</th>
-          <th>Status <span class="filtro-icone" onclick="abrirFiltro(event,'tabelaVendas','status')">▾</span></th>
-          <th>Anexos</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-</div>
-
-<!-- MODAL FORMULÁRIO -->
-<div id="modal" class="modal hidden">
-  <div class="modal-box">
-    <span class="fechar" onclick="fecharModal()">&times;</span>
-    <div id="modalConteudo"></div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="app.js"></script>
-
-</body>
-</html>
+          <th>PI
