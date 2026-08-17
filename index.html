@@ -49,11 +49,29 @@
   <section id="abaDashVendas" class="aba hidden">
     <h2>Dashboard de Vendas</h2>
     <div id="cardsDashVendas" class="cards-dash"></div>
+
     <div class="dash-bloco">
       <h3>Top Clientes</h3>
       <table class="tabela-dash">
         <thead><tr><th>Cliente</th><th>Total Vendido</th></tr></thead>
         <tbody id="topClientes"></tbody>
+      </table>
+    </div>
+
+    <div class="dash-bloco">
+      <h3>Faturamento por Item</h3>
+      <table class="tabela-dash">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Qtd Vendida</th>
+            <th>Faturamento</th>
+            <th>Custo Total</th>
+            <th>Lucro Bruto</th>
+            <th>Margem %</th>
+          </tr>
+        </thead>
+        <tbody id="faturamentoItens"></tbody>
       </table>
     </div>
   </section>
