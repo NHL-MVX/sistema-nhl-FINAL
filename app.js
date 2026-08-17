@@ -57,6 +57,18 @@ function formatMoeda(v) {
   return "$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Renderiza um "empilhado" de valores de itens, um por linha, alinhado por produto
+function colunaItens(itens, campo, formato) {
+  if (!itens || itens.length === 0) return "-";
+  return itens.map(i => {
+    let v = i[campo];
+    if (formato === "moeda") v = formatMoeda(v);
+    else if (formato === "pct") v = (parseFloat(v) || 0).toFixed(2) + "%";
+    else v = v || "-";
+    return `<div class="linha-item">${v}</div>`;
+  }).join("");
+}
+
 // ===== EXPORTAÇÃO PDF (DASHBOARDS) =====
 async function exportarDashPDF(elementId, nomeArquivo) {
   const el = document.getElementById(elementId);
@@ -316,28 +328,15 @@ async function carregarCompras() {
   data.forEach((c, index) => {
     const classeCor = index % 2 === 0 ? "linha-clara" : "linha-escura";
     const itens = itensPorCompra[c.id] || [];
-    const itensHtml = itens.length === 0
-      ? "-"
-      : `<div class="itens-scroll"><table class="mini-tabela-itens compra">
-          <thead>
-            <tr><th>Produto</th><th>Qtd</th><th>Custo</th><th>Total</th></tr>
-          </thead>
-          <tbody>
-            ${itens.map(i => `
-              <tr>
-                <td>${i.produto || ""}</td>
-                <td>${i.quantidade || ""}</td>
-                <td>${formatMoeda(i.custo)}</td>
-                <td>${formatMoeda(i.total)}</td>
-              </tr>`).join("")}
-          </tbody>
-        </table></div>`;
 
     tbody.innerHTML += `
       <tr class="${classeCor}" data-compra-id="${c.id}">
         <td>${c.pi_compra||""}</td><td>${c.data||""}</td><td>${c.empresa||""}</td>
         <td>${c.fornecedor||""}</td>
-        <td>${itensHtml}</td>
+        <td>${colunaItens(itens, "produto")}</td>
+        <td>${colunaItens(itens, "quantidade")}</td>
+        <td>${colunaItens(itens, "custo", "moeda")}</td>
+        <td>${colunaItens(itens, "total", "moeda")}</td>
         <td>${formatMoeda(c.total)}</td><td>${c.pgto||""}</td>
         <td>${formatMoeda(c.valor_pago)}</td><td>${formatMoeda(c.a_pagar)}</td><td>${c.status||""}</td>
         <td>${c.finalidade||""}</td>
@@ -348,8 +347,6 @@ async function carregarCompras() {
         </td>
       </tr>`;
   });
-
-  filtrarTabela();
 }
 
 function linhaItemCompra(item = {}) {
@@ -369,9 +366,10 @@ function adicionarItemCompra() {
 
 function removerItemLinha(btn) {
   btn.closest(".item-row").remove();
-  const container = document.getElementById("c_itens_container") || document.getElementById("v_itens_container");
-  if (container && container.id === "c_itens_container") atualizarTotalCompra();
-  if (container && container.id === "v_itens_container") atualizarTotalVenda();
+  const cCont = document.getElementById("c_itens_container");
+  const vCont = document.getElementById("v_itens_container");
+  if (cCont) atualizarTotalCompra();
+  if (vCont) atualizarTotalVenda();
 }
 
 function calcItemCompra(el) {
@@ -562,30 +560,6 @@ async function carregarVendas() {
     const classeCor = index % 2 === 0 ? "linha-clara" : "linha-escura";
     const itens = itensPorVenda[v.id] || [];
 
-    const itensHtml = itens.length === 0
-      ? "-"
-      : `<div class="itens-scroll"><table class="mini-tabela-itens venda">
-          <thead>
-            <tr>
-              <th>Produto</th><th>Qtd</th><th>Custo</th><th>Venda</th>
-              <th>Margem %</th><th>Lucro</th><th>Tot. Custo</th><th>Tot. Venda</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itens.map(i => `
-              <tr>
-                <td>${i.produto || ""}</td>
-                <td>${i.quantidade || ""}</td>
-                <td>${formatMoeda(i.custo)}</td>
-                <td>${formatMoeda(i.venda)}</td>
-                <td>${i.margem || ""}%</td>
-                <td>${formatMoeda(i.lucro_bruto)}</td>
-                <td>${formatMoeda(i.total_custo)}</td>
-                <td>${formatMoeda(i.total_venda)}</td>
-              </tr>`).join("")}
-          </tbody>
-        </table></div>`;
-
     let lucroTotal = 0;
     itens.forEach(i => { lucroTotal += parseFloat(i.lucro_bruto) || 0; });
     const totalVenda = parseFloat(v.total_venda) || 0;
@@ -595,7 +569,14 @@ async function carregarVendas() {
       <tr class="${classeCor}" data-venda-id="${v.id}">
         <td>${v.pi_compra||""}</td><td>${v.pi_venda||""}</td><td>${v.data||""}</td>
         <td>${v.cliente||""}</td><td>${v.modal_venda||""}</td>
-        <td>${itensHtml}</td>
+        <td>${colunaItens(itens, "produto")}</td>
+        <td>${colunaItens(itens, "quantidade")}</td>
+        <td>${colunaItens(itens, "custo", "moeda")}</td>
+        <td>${colunaItens(itens, "venda", "moeda")}</td>
+        <td>${colunaItens(itens, "margem", "pct")}</td>
+        <td>${colunaItens(itens, "lucro_bruto", "moeda")}</td>
+        <td>${colunaItens(itens, "total_custo", "moeda")}</td>
+        <td>${colunaItens(itens, "total_venda", "moeda")}</td>
         <td>${formatMoeda(v.total_custo)}</td><td>${formatMoeda(v.total_venda)}</td>
         <td>${v.pgto||""}</td><td>${formatMoeda(v.recebido)}</td><td>${formatMoeda(v.restante)}</td>
         <td>${formatMoeda(v.comissao)}</td>
@@ -609,8 +590,6 @@ async function carregarVendas() {
         </td>
       </tr>`;
   });
-
-  filtrarTabela();
 }
 
 function linhaItemVenda(item = {}) {
@@ -821,112 +800,3 @@ async function excluirVenda(id) {
   carregarVendas();
   carregarDashboardVendas();
 }
-
-// =========================================================
-// ===================== FILTROS (ESTILO EXCEL) =============
-// =========================================================
-
-let filtrosAtivos = {}; // { "tabela|coluna": Set(valoresSelecionados) }
-
-// índice das colunas <td> em cada tabela (0-based)
-const MAPA_COLUNAS = {
-  compras: {
-    pi_compra: 0, data: 1, empresa: 2, fornecedor: 3,
-    total: 5, pgto: 6, valor_pago: 7, a_pagar: 8, status: 9, finalidade: 10
-  },
-  vendas: {
-    pi_compra: 0, pi_venda: 1, data: 2, cliente: 3, modal: 4,
-    total_custo: 6, total_venda: 7, pgto: 8, recebido: 9, restante: 10,
-    comissao: 11, margem: 12, lucro: 13, status: 14
-  }
-};
-
-function getInfoColuna(tabelaId, coluna) {
-  const chaveTabela = tabelaId === "tabelaVendas" ? "vendas" : "compras";
-  const colIndex = MAPA_COLUNAS[chaveTabela][coluna];
-  return { tabelaId, chaveTabela, colIndex };
-}
-
-function abrirFiltro(event, tabelaId, coluna) {
-  event.stopPropagation();
-  fecharFiltrosAbertos();
-
-  const info = getInfoColuna(tabelaId, coluna);
-  if (info.colIndex === undefined) return;
-
-  const tabela = document.getElementById(tabelaId);
-  const linhas = [...tabela.querySelectorAll('tbody tr')];
-
-  const valores = new Set();
-  linhas.forEach(tr => {
-    const val = tr.querySelectorAll('td')[info.colIndex]?.innerText.trim();
-    if (val) valores.add(val);
-  });
-
-  const chaveFiltro = tabelaId + "|" + coluna;
-  const dropdown = document.createElement('div');
-  dropdown.className = 'filtro-dropdown';
-  dropdown.id = 'dropdown-' + chaveFiltro;
-
-  const selecionados = filtrosAtivos[chaveFiltro] || new Set(valores);
-
-  [...valores].sort().forEach(v => {
-    const checked = selecionados.has(v) ? 'checked' : '';
-    dropdown.innerHTML += `
-      <label>
-        <input type="checkbox" value="${v}" ${checked}> ${v}
-      </label>`;
-  });
-
-  dropdown.innerHTML += `
-    <div class="filtro-acoes">
-      <button class="btn-limpar" onclick="limparFiltro('${tabelaId}', '${coluna}')">Limpar</button>
-      <button class="btn-ok" onclick="aplicarFiltro('${tabelaId}', '${coluna}')">OK</button>
-    </div>`;
-
-  document.body.appendChild(dropdown);
-  const rect = event.target.getBoundingClientRect();
-  dropdown.style.top = rect.bottom + window.scrollY + 'px';
-  dropdown.style.left = rect.left + window.scrollX + 'px';
-}
-
-function aplicarFiltro(tabelaId, coluna) {
-  const chaveFiltro = tabelaId + "|" + coluna;
-  const dropdown = document.getElementById('dropdown-' + chaveFiltro);
-  const marcados = [...dropdown.querySelectorAll('input:checked')].map(i => i.value);
-  filtrosAtivos[chaveFiltro] = new Set(marcados);
-  filtrarTabela();
-  dropdown.remove();
-}
-
-function limparFiltro(tabelaId, coluna) {
-  const chaveFiltro = tabelaId + "|" + coluna;
-  delete filtrosAtivos[chaveFiltro];
-  filtrarTabela();
-  document.getElementById('dropdown-' + chaveFiltro)?.remove();
-}
-
-function filtrarTabela() {
-  ['tabelaVendas', 'tabelaCompras'].forEach(tabelaId => {
-    const tabela = document.getElementById(tabelaId);
-    if (!tabela) return;
-    const linhas = [...tabela.querySelectorAll('tbody tr')];
-
-    linhas.forEach(tr => {
-      let mostrar = true;
-      for (const chaveFiltro in filtrosAtivos) {
-        const [tId, coluna] = chaveFiltro.split("|");
-        if (tId !== tabelaId) continue;
-        const info = getInfoColuna(tabelaId, coluna);
-        const val = tr.querySelectorAll('td')[info.colIndex]?.innerText.trim();
-        if (!filtrosAtivos[chaveFiltro].has(val)) { mostrar = false; break; }
-      }
-      tr.style.display = mostrar ? '' : 'none';
-    });
-  });
-}
-
-function fecharFiltrosAbertos() {
-  document.querySelectorAll('.filtro-dropdown').forEach(el => el.remove());
-}
-document.addEventListener('click', fecharFiltrosAbertos);
