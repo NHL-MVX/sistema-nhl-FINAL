@@ -189,3 +189,57 @@ tr:hover { background: #f8fafc; }
 .mini-tabela-itens td:nth-child(3) { width: 12%; }  /* Custo */
 .mini-tabela-itens th:nth-child(4),
 .mini-tabela-itens td:nth-child(4) { width: 12%; }  /* Venda */
+
+.dashboard-titulo {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 24px 0 20px 0;
+  color: #1a202c;
+}
+
+.secao-titulo {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 32px 0 16px 0;
+  color: #1a202c;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.card-label {
+  font-size: 13px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.card-valor {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+/* Destaques por cor */
+.card.destaque-lucro .card-valor { color: #38a169; }
+.card.destaque-recebido .card-valor { color: #3182ce; }
+.card.destaque-receber .card-valor { color: #e53e3e; }
