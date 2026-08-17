@@ -26,12 +26,40 @@
   </header>
 
   <nav>
+    <button onclick="mostrarAba('dashCompras')">📊 Dash Compras</button>
+    <button onclick="mostrarAba('dashVendas')">📊 Dash Vendas</button>
     <button onclick="mostrarAba('compras')">Compras</button>
     <button onclick="mostrarAba('vendas')">Vendas FOB</button>
   </nav>
 
+  <!-- DASHBOARD COMPRAS -->
+  <section id="abaDashCompras" class="aba hidden">
+    <h2>Dashboard de Compras</h2>
+    <div id="cardsDashCompras" class="cards-dash"></div>
+    <div class="dash-bloco">
+      <h3>Top Fornecedores</h3>
+      <table class="tabela-dash">
+        <thead><tr><th>Fornecedor</th><th>Total Comprado</th></tr></thead>
+        <tbody id="topFornecedores"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- DASHBOARD VENDAS -->
+  <section id="abaDashVendas" class="aba hidden">
+    <h2>Dashboard de Vendas</h2>
+    <div id="cardsDashVendas" class="cards-dash"></div>
+    <div class="dash-bloco">
+      <h3>Top Clientes</h3>
+      <table class="tabela-dash">
+        <thead><tr><th>Cliente</th><th>Total Vendido</th></tr></thead>
+        <tbody id="topClientes"></tbody>
+      </table>
+    </div>
+  </section>
+
   <!-- ABA COMPRAS -->
-  <section id="abaCompras" class="aba">
+  <section id="abaCompras" class="aba hidden">
     <h2>Compras</h2>
     <button onclick="abrirFormCompra()">+ Nova Compra</button>
     <table id="tabelaCompras">
