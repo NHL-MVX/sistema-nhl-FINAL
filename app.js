@@ -818,3 +818,5 @@ async function excluirVenda(id) {
   carregarVendas();
   carregarDashboardVendas();
 }
+const classeCor = index % 2 === 0 ? "linha-clara" : "linha-escura";
+// <tr class="${classeCor}"> ...
