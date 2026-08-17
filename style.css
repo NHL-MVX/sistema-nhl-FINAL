@@ -1,57 +1,228 @@
-/* ===== TABELA PRINCIPAL (Vendas FOB / Compras / Faturamento) ===== */
-.tabela-relatorio {
+/* ===== RESET E BASE ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6fa;
+  color: #1e293b;
+}
+.hidden { display: none !important; }
+
+/* ===== LOGIN ===== */
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #2c4a7c, #1e3a63);
+}
+.login-box {
+  background: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  width: 320px;
+  text-align: center;
+}
+.login-box h2 { margin-bottom: 20px; color: #2c4a7c; }
+.login-box input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.login-box button {
+  width: 100%;
+  padding: 10px;
+  background: #2c4a7c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.login-box button:hover { background: #1e3a63; }
+.erro { color: #dc2626; margin-top: 8px; font-size: 13px; }
+
+/* ===== HEADER ===== */
+header {
+  background: #2c4a7c;
+  color: #fff;
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+header h1 { font-size: 20px; }
+header button {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+header button:hover { background: #b91c1c; }
+
+/* ===== NAV ===== */
+nav {
+  display: flex;
+  gap: 8px;
+  background: #fff;
+  padding: 10px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+nav button {
+  background: #eef2f8;
+  color: #2c4a7c;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+nav button:hover { background: #dbe4f0; }
+
+/* ===== SEÇÕES / ABAS ===== */
+.aba { padding: 24px; }
+.aba h2 { color: #2c4a7c; margin-bottom: 16px; }
+
+/* Botões de ação em geral */
+.aba button {
+  background: #2c4a7c;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.aba button:hover { background: #1e3a63; }
+
+.btn-exportar {
+  background: #16a34a !important;
+  margin-left: 8px;
+}
+.btn-exportar:hover { background: #15803d !important; }
+
+/* ===== CARDS DASHBOARD ===== */
+.cards-dash {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.card-dash {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px 20px;
+  min-width: 180px;
+  flex: 1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.card-titulo {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.card-valor {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.destaque-verde { color: #16a34a !important; }
+.destaque-vermelho { color: #dc2626 !important; }
+
+.dash-bloco {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  overflow-x: auto;
+}
+.dash-bloco h3 { color: #2c4a7c; margin-bottom: 12px; font-size: 15px; }
+
+/* ===== TABELA DASHBOARD (Top Clientes/Fornecedores/Faturamento) ===== */
+.tabela-dash {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tabela-dash th {
+  background: #2c4a7c;
+  color: #fff;
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+}
+.tabela-dash td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.tabela-dash tbody tr:nth-child(even) { background: #f7f9fc; }
+.tabela-dash tbody tr:hover { background: #eef2f8; }
+
+/* ===== TABELAS PRINCIPAIS (Compras / Vendas FOB) ===== */
+#tabelaCompras, #tabelaVendas {
   border-collapse: collapse;
   width: 100%;
   font-size: 12px;
-  font-family: Arial, sans-serif;
-  table-layout: fixed;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 8px;
+  overflow: hidden;
 }
-
-.tabela-relatorio th {
+#tabelaCompras th, #tabelaVendas th {
   background: #2c4a7c;
   color: #fff;
-  padding: 6px 8px;
+  padding: 8px 10px;
   font-weight: 600;
   text-align: center;
-  border: 1px solid #1e3a63;
-  vertical-align: middle;
+  white-space: nowrap;
 }
-
-.tabela-relatorio td {
-  padding: 6px 8px;
-  border: 1px solid #e0e0e0;
+#tabelaCompras td, #tabelaVendas td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
   vertical-align: top;
-  text-align: left;
+  font-size: 12px;
 }
-
-.tabela-relatorio tbody tr:nth-child(even) {
+#tabelaCompras tbody tr:nth-child(even),
+#tabelaVendas tbody tr:nth-child(even) {
   background: #f7f9fc;
 }
-
-.tabela-relatorio tbody tr:hover {
+#tabelaCompras tbody tr:hover,
+#tabelaVendas tbody tr:hover {
   background: #eef2f8;
 }
 
-/* Colunas numéricas alinhadas à direita */
-.tabela-relatorio td.numero,
-.tabela-relatorio th.numero {
-  text-align: right;
-}
-
-/* Coluna "Itens" que contém a mini-tabela */
-.tabela-relatorio td.col-itens {
+/* Coluna Itens (mini-tabela dentro) sem padding extra */
+#tabelaCompras td:has(table),
+#tabelaVendas td:has(table) {
   padding: 0;
 }
 
+.itens-scroll {
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* ===== MINI-TABELA DE ITENS (dentro da célula Itens) ===== */
 .mini-tabela-itens {
   border-collapse: collapse;
   font-size: 11px;
   width: 100%;
   table-layout: fixed;
 }
-
 .mini-tabela-itens th {
-  background: #2c4a7c;
+  background: #5b7aa8;
   color: #fff;
   padding: 4px 6px;
   font-weight: 600;
@@ -59,13 +230,142 @@
   text-align: center;
   white-space: nowrap;
 }
-
 .mini-tabela-itens td {
   padding: 4px 6px;
   border-bottom: 1px solid #eee;
   font-size: 11px;
+  text-align: right;
+  white-space: nowrap;
+}
+.mini-tabela-itens td:first-child {
+  text-align: left;
+  white-space: normal;
+}
+.mini-tabela-itens tbody tr:nth-child(even) { background: #f0f4f9; }
+.mini-tabela-itens tbody tr:hover { background: #e2e8f0; }
+
+/* ===== BOTÕES DE AÇÃO (Editar/Excluir) ===== */
+.btn-acao {
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  background: #2c4a7c;
+  margin: 2px;
+}
+.btn-acao:hover { background: #1e3a63; }
+.btn-excluir { background: #dc2626 !important; }
+.btn-excluir:hover { background: #b91c1c !important; }
+
+/* ===== ANEXOS ===== */
+.anexo-link {
+  display: inline-block;
+  color: #2c4a7c;
+  font-size: 11px;
+  margin: 2px 4px;
+  text-decoration: none;
+}
+.anexo-link:hover { text-decoration: underline; }
+.anexo-atual {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.anexo-atual button {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
 }
 
-.mini-tabela-itens tbody tr:nth-child(even) {
-  background: #f7f9fc;
+/* ===== MODAL (formulário Nova Compra/Venda) ===== */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.modal-box {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px 32px;
+  width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-box h3 { color: #2c4a7c; margin-bottom: 16px; }
+.modal-box label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin: 10px 0 4px;
+}
+.modal-box input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.fechar {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-size: 22px;
+  cursor: pointer;
+  color: #64748b;
+}
+.fechar:hover { color: #1e293b; }
+
+.modal-box button.salvar {
+  margin-top: 20px;
+  width: 100%;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.modal-box button.salvar:hover { background: #15803d; }
+
+/* ===== LINHAS DE ITEM NO FORMULÁRIO ===== */
+.item-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 6px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+.item-row-venda {
+  grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr auto;
+}
+.item-row input { font-size: 12px; padding: 6px; }
+.btn-remover-item {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+}
+.btn-add-item {
+  margin-top: 6px;
+  background: #eef2f8 !important;
+  color: #2c4a7c !important;
+  font-size: 12px;
 }
