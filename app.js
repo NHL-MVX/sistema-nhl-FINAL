@@ -26,12 +26,11 @@ function logout() {
 function iniciarApp() {
   document.getElementById("loginScreen").classList.add("hidden");
   document.getElementById("appScreen").classList.remove("hidden");
-  carregarCompras()const { data, error } = await sb.from("compras").select("*").order("data", { ascending: true });
-;
-  carregarVendas()const { data, error } = await sb.from("vendas").select("*").order("data", { ascending: true });
-;
+  carregarCompras();
+  carregarVendas();
   mostrarAba('dashCompras');
 }
+
 
 if (sessionStorage.getItem("logado") === "1") {
   window.onload = iniciarApp;
@@ -315,7 +314,8 @@ async function carregarDashboardVendas() {
 // =========================================================
 
 async function carregarCompras() {
-  const { data, error } = await sb.from("compras").select("*").order("id", { ascending: false });
+  const { data, error } = await sb.from("compras").select("*").order("data", { ascending: true });
+
   if (error) { console.error(error); return; }
 
   const { data: itensData } = await sb.from("compras_itens").select("*");
@@ -546,7 +546,8 @@ async function excluirCompra(id) {
 // =========================================================
 
 async function carregarVendas() {
-  const { data, error } = await sb.from("vendas").select("*").order("id", { ascending: false });
+  const { data, error } = await sb.from("vendas").select("*").order("data", { ascending: true });
+
   if (error) { console.error(error); return; }
 
   const { data: itensData } = await sb.from("vendas_itens").select("*");
