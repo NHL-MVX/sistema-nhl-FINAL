@@ -419,3 +419,48 @@ nav button:hover { background: #dbe4f0; }
   color: #2c4a7c !important;
   font-size: 12px;
 }
+.filtro-icone {
+  cursor: pointer;
+  margin-left: 4px;
+  font-size: 10px;
+  color: #cfdaeb;
+}
+.filtro-icone:hover { color: #fff; }
+
+.filtro-dropdown {
+  position: absolute;
+  background: #fff;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 500;
+  font-size: 12px;
+  min-width: 180px;
+}
+.filtro-dropdown label {
+  display: block;
+  padding: 3px 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.filtro-dropdown label:hover { background: #eef2f8; }
+.filtro-dropdown .filtro-acoes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  gap: 6px;
+}
+.filtro-dropdown .filtro-acoes button {
+  flex: 1;
+  font-size: 11px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.filtro-dropdown .btn-ok { background: #2c4a7c; color: #fff; }
+.filtro-dropdown .btn-limpar { background: #eef2f8; color: #2c4a7c; }
