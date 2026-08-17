@@ -26,8 +26,10 @@ function logout() {
 function iniciarApp() {
   document.getElementById("loginScreen").classList.add("hidden");
   document.getElementById("appScreen").classList.remove("hidden");
-  carregarCompras();
-  carregarVendas();
+  carregarCompras()const { data, error } = await sb.from("compras").select("*").order("data", { ascending: true });
+;
+  carregarVendas()const { data, error } = await sb.from("vendas").select("*").order("data", { ascending: true });
+;
   mostrarAba('dashCompras');
 }
 
