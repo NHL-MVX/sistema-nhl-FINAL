@@ -28,6 +28,7 @@ function iniciarApp() {
   document.getElementById("appScreen").classList.remove("hidden");
   carregarCompras();
   carregarVendas();
+  mostrarAba('dashCompras');
 }
 
 if (sessionStorage.getItem("logado") === "1") {
@@ -36,9 +37,10 @@ if (sessionStorage.getItem("logado") === "1") {
 
 // ===== NAVEGAÇÃO =====
 function mostrarAba(nome) {
-  document.getElementById("abaCompras").classList.add("hidden");
-  document.getElementById("abaVendas").classList.add("hidden");
+  document.querySelectorAll(".aba").forEach(el => el.classList.add("hidden"));
   document.getElementById("aba" + nome[0].toUpperCase() + nome.slice(1)).classList.remove("hidden");
+  if (nome === "dashCompras") carregarDashboardCompras();
+  if (nome === "dashVendas") carregarDashboardVendas();
 }
 
 function fecharModal() {
@@ -48,6 +50,11 @@ function fecharModal() {
 // ===== HELPERS =====
 function numOrNull(v) {
   return v === "" || v === undefined ? null : v;
+}
+
+function formatMoeda(v) {
+  const n = parseFloat(v) || 0;
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 // ===== UPLOAD DE ANEXO =====
@@ -89,6 +96,127 @@ async function removerAnexo(tabela, id, coluna, index) {
 }
 
 // =========================================================
+// ===================== DASHBOARDS ==========================
+// =========================================================
+
+async function carregarDashboardCompras() {
+  const { data: compras } = await sb.from("compras").select("*");
+  const { data: itens } = await sb.from("compras_itens").select("*");
+
+  const lista = compras || [];
+  const listaItens = itens || [];
+
+  const totalCompras = lista.reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
+  const valorPago = lista.reduce((s, c) => s + (parseFloat(c.valor_pago) || 0), 0);
+  const aPagar = lista.reduce((s, c) => s + (parseFloat(c.a_pagar) || 0), 0);
+  const comprasPagas = lista.filter(c => (parseFloat(c.a_pagar) || 0) <= 0).length;
+  const produtosComprados = listaItens.reduce((s, i) => s + (parseFloat(i.quantidade) || 0), 0);
+  const qtdCompras = lista.length;
+
+  document.getElementById("cardsDashCompras").innerHTML = `
+    <div class="card-dash">
+      <span class="card-titulo">Total em Compras</span>
+      <span class="card-valor">${formatMoeda(totalCompras)}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Valor Pago</span>
+      <span class="card-valor">${formatMoeda(valorPago)}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Valor À Pagar</span>
+      <span class="card-valor destaque-vermelho">${formatMoeda(aPagar)}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Compras Pagas</span>
+      <span class="card-valor">${comprasPagas} / ${qtdCompras}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Produtos Comprados</span>
+      <span class="card-valor">${produtosComprados}</span>
+    </div>
+  `;
+
+  // Top fornecedores
+  const porFornecedor = {};
+  lista.forEach(c => {
+    const nome = c.fornecedor || "Não informado";
+    porFornecedor[nome] = (porFornecedor[nome] || 0) + (parseFloat(c.total) || 0);
+  });
+  const topFornecedores = Object.entries(porFornecedor)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  document.getElementById("topFornecedores").innerHTML = topFornecedores.length === 0
+    ? `<tr><td colspan="2">Sem dados</td></tr>`
+    : topFornecedores.map(([nome, valor]) => `
+        <tr><td>${nome}</td><td>${formatMoeda(valor)}</td></tr>
+      `).join("");
+}
+
+async function carregarDashboardVendas() {
+  const { data: vendas } = await sb.from("vendas").select("*");
+  const { data: itens } = await sb.from("vendas_itens").select("*");
+
+  const lista = vendas || [];
+  const listaItens = itens || [];
+
+  const totalVenda = lista.reduce((s, v) => s + (parseFloat(v.total_venda) || 0), 0);
+  const totalCusto = lista.reduce((s, v) => s + (parseFloat(v.total_custo) || 0), 0);
+  const recebido = lista.reduce((s, v) => s + (parseFloat(v.recebido) || 0), 0);
+  const aReceber = lista.reduce((s, v) => s + (parseFloat(v.restante) || 0), 0);
+  const produtosVendidos = listaItens.reduce((s, i) => s + (parseFloat(i.quantidade) || 0), 0);
+  const lucroBrutoTotal = listaItens.reduce((s, i) => s + (parseFloat(i.lucro_bruto) || 0), 0);
+  const qtdVendas = lista.length;
+
+  document.getElementById("cardsDashVendas").innerHTML = `
+    <div class="card-dash">
+      <span class="card-titulo">Total de Vendas</span>
+      <span class="card-valor">${qtdVendas}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Valor Vendido</span>
+      <span class="card-valor">${formatMoeda(totalVenda)}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Valor Total Custo</span>
+      <span class="card-valor">${formatMoeda(totalCusto)}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Lucro Bruto Total</span>
+      <span class="card-valor destaque-verde">${formatMoeda(lucroBrutoTotal)}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Recebido</span>
+      <span class="card-valor">${formatMoeda(recebido)}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">À Receber</span>
+      <span class="card-valor destaque-vermelho">${formatMoeda(aReceber)}</span>
+    </div>
+    <div class="card-dash">
+      <span class="card-titulo">Produtos Vendidos</span>
+      <span class="card-valor">${produtosVendidos}</span>
+    </div>
+  `;
+
+  // Top clientes
+  const porCliente = {};
+  lista.forEach(v => {
+    const nome = v.cliente || "Não informado";
+    porCliente[nome] = (porCliente[nome] || 0) + (parseFloat(v.total_venda) || 0);
+  });
+  const topClientes = Object.entries(porCliente)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  document.getElementById("topClientes").innerHTML = topClientes.length === 0
+    ? `<tr><td colspan="2">Sem dados</td></tr>`
+    : topClientes.map(([nome, valor]) => `
+        <tr><td>${nome}</td><td>${formatMoeda(valor)}</td></tr>
+      `).join("");
+}
+
+// =========================================================
 // ===================== COMPRAS ============================
 // =========================================================
 
@@ -118,8 +246,8 @@ async function carregarCompras() {
               <tr>
                 <td>${i.produto || ""}</td>
                 <td>${i.quantidade || ""}</td>
-                <td>${i.custo || ""}</td>
-                <td>${i.total || ""}</td>
+                <td>${formatMoeda(i.custo)}</td>
+                <td>${formatMoeda(i.total)}</td>
               </tr>`).join("")}
           </tbody>
         </table>`;
@@ -129,8 +257,8 @@ async function carregarCompras() {
         <td>${c.pi_compra||""}</td><td>${c.data||""}</td><td>${c.empresa||""}</td>
         <td>${c.fornecedor||""}</td>
         <td>${itensHtml}</td>
-        <td>${c.total||""}</td><td>${c.pgto||""}</td>
-        <td>${c.valor_pago||""}</td><td>${c.a_pagar||""}</td><td>${c.status||""}</td>
+        <td>${formatMoeda(c.total)}</td><td>${c.pgto||""}</td>
+        <td>${formatMoeda(c.valor_pago)}</td><td>${formatMoeda(c.a_pagar)}</td><td>${c.status||""}</td>
         <td>${c.finalidade||""}</td>
         <td>${renderAnexos(c.anexos_pi)}${renderAnexos(c.anexos_invoice)}${renderAnexos(c.anexos_packing)}${renderAnexos(c.anexos_awb_bl)}${renderAnexos(c.anexos_pgto)}</td>
         <td>
@@ -320,6 +448,7 @@ async function salvarCompra(id) {
 
   fecharModal();
   carregarCompras();
+  carregarDashboardCompras();
 }
 
 async function excluirCompra(id) {
@@ -327,6 +456,7 @@ async function excluirCompra(id) {
   await sb.from("compras_itens").delete().eq("compra_id", id);
   await sb.from("compras").delete().eq("id", id);
   carregarCompras();
+  carregarDashboardCompras();
 }
 
 // =========================================================
@@ -363,17 +493,16 @@ async function carregarVendas() {
               <tr>
                 <td>${i.produto || ""}</td>
                 <td>${i.quantidade || ""}</td>
-                <td>${i.custo || ""}</td>
-                <td>${i.venda || ""}</td>
-                <td>${i.margem || ""}</td>
-                <td>${i.lucro_bruto || ""}</td>
-                <td>${i.total_custo || ""}</td>
-                <td>${i.total_venda || ""}</td>
+                <td>${formatMoeda(i.custo)}</td>
+                <td>${formatMoeda(i.venda)}</td>
+                <td>${i.margem || ""}%</td>
+                <td>${formatMoeda(i.lucro_bruto)}</td>
+                <td>${formatMoeda(i.total_custo)}</td>
+                <td>${formatMoeda(i.total_venda)}</td>
               </tr>`).join("")}
           </tbody>
         </table>`;
 
-    // Cálculo da margem total e lucro bruto total da operação
     let lucroTotal = 0;
     itens.forEach(i => { lucroTotal += parseFloat(i.lucro_bruto) || 0; });
     const totalVenda = parseFloat(v.total_venda) || 0;
@@ -384,11 +513,11 @@ async function carregarVendas() {
         <td>${v.pi_compra||""}</td><td>${v.pi_venda||""}</td><td>${v.data||""}</td>
         <td>${v.cliente||""}</td><td>${v.modal_venda||""}</td>
         <td>${itensHtml}</td>
-        <td>${v.total_custo||""}</td><td>${v.total_venda||""}</td>
-        <td>${v.pgto||""}</td><td>${v.recebido||""}</td><td>${v.restante||""}</td>
-        <td>${v.comissao||""}</td>
+        <td>${formatMoeda(v.total_custo)}</td><td>${formatMoeda(v.total_venda)}</td>
+        <td>${v.pgto||""}</td><td>${formatMoeda(v.recebido)}</td><td>${formatMoeda(v.restante)}</td>
+        <td>${formatMoeda(v.comissao)}</td>
         <td>${margemTotal.toFixed(2)}%</td>
-        <td>${lucroTotal.toFixed(2)}</td>
+        <td>${formatMoeda(lucroTotal)}</td>
         <td>${v.status||""}</td>
         <td>${renderAnexos(v.anexos_pi)}${renderAnexos(v.anexos_invoice)}${renderAnexos(v.anexos_packing)}${renderAnexos(v.anexos_awb_bl)}${renderAnexos(v.anexos_pagamento)}</td>
         <td>
@@ -507,7 +636,6 @@ async function abrirFormVenda(id) {
   `;
   document.getElementById("modal").classList.remove("hidden");
 
-  // Recalcular linhas já preenchidas (edição)
   document.querySelectorAll("#v_itens_container .it_qtde").forEach(inp => calcItemVenda(inp));
   atualizarTotalVenda();
 }
@@ -571,7 +699,6 @@ async function salvarVenda(id) {
 
   if (error) { alert("Erro: " + error.message); return; }
 
-  // Salvar itens
   const itens = [];
   document.querySelectorAll("#v_itens_container .item-row-venda").forEach(row => {
     const produto = row.querySelector(".it_produto").value;
@@ -599,6 +726,7 @@ async function salvarVenda(id) {
 
   fecharModal();
   carregarVendas();
+  carregarDashboardVendas();
 }
 
 async function excluirVenda(id) {
@@ -606,4 +734,5 @@ async function excluirVenda(id) {
   await sb.from("vendas_itens").delete().eq("venda_id", id);
   await sb.from("vendas").delete().eq("id", id);
   carregarVendas();
+  carregarDashboardVendas();
 }
