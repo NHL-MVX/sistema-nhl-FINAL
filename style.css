@@ -37,6 +37,19 @@ nav button:hover { background: #94a3b8; }
 .aba button { padding: 8px 16px; background: #16a34a; color: white; border: none;
   border-radius: 5px; cursor: pointer; margin-bottom: 15px; }
 
+.btn-exportar {
+  background: #64748b;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 15px;
+  margin-left: 8px;
+  font-weight: bold;
+}
+.btn-exportar:hover { background: #475569; }
+
 table {
   width: 100%; border-collapse: collapse; background: white; margin-top: 10px;
   font-size: 13px;
