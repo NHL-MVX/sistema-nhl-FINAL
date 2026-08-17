@@ -89,7 +89,6 @@ nav button:hover { background: #dbe4f0; }
 .aba { padding: 24px; }
 .aba h2 { color: #2c4a7c; margin-bottom: 16px; }
 
-/* Botões de ação em geral */
 .aba button {
   background: #2c4a7c;
   color: #fff;
@@ -149,7 +148,7 @@ nav button:hover { background: #dbe4f0; }
 }
 .dash-bloco h3 { color: #2c4a7c; margin-bottom: 12px; font-size: 15px; }
 
-/* ===== TABELA DASHBOARD (Top Clientes/Fornecedores/Faturamento) ===== */
+/* ===== TABELA DASHBOARD ===== */
 .tabela-dash {
   width: 100%;
   border-collapse: collapse;
@@ -191,29 +190,27 @@ nav button:hover { background: #dbe4f0; }
   padding: 8px 10px;
   vertical-align: top;
   font-size: 12px;
-  border-bottom: none; /* borda fina removida, usamos separador de bloco abaixo */
+  border-bottom: none;
 }
 
-/* Separador visual entre cada venda/compra (linha inteira) */
-/* Separador visual entre cada venda/compra */
-#tabelaCompras td,
-#tabelaVendas td {
-  border-bottom: 3px solid #d7e0ec;
+/* Separador visual entre cada venda/compra (linha inteira = 1 registro) */
+#tabelaVendas tbody tr,
+#tabelaCompras tbody tr {
+  border-bottom: 4px solid #cfdaeb;
 }
 
-/* Mas as linhas internas do mini-table (itens) não devem ter essa borda grossa */
-.mini-tabela-itens td {
-  border-bottom: 1px solid #eee !important;
+/* Cor de fundo por VENDA/COMPRA (alternância mais contrastante) */
+#tabelaCompras tbody tr:nth-child(odd),
+#tabelaVendas tbody tr:nth-child(odd) {
+  background: #ffffff;
 }
-
-
 #tabelaCompras tbody tr:nth-child(even),
 #tabelaVendas tbody tr:nth-child(even) {
-  background: #f7f9fc;
+  background: #dde6f3; /* azul mais forte para destoar melhor */
 }
 #tabelaCompras tbody tr:hover,
 #tabelaVendas tbody tr:hover {
-  background: #eef2f8;
+  background: #cddbee !important;
 }
 
 /* Coluna Itens (mini-tabela dentro) sem padding extra */
@@ -223,6 +220,7 @@ nav button:hover { background: #dbe4f0; }
 }
 
 .itens-scroll {
+  position: relative;
   max-height: 220px;
   overflow-y: auto;
   overflow-x: auto;
@@ -234,9 +232,9 @@ nav button:hover { background: #dbe4f0; }
   font-size: 11px;
   width: 100%;
   table-layout: fixed;
+  background: transparent; /* herda a cor da linha pai (venda/compra) */
 }
 
-/* Cabeçalho da mini-tabela oculto (evita repetição por linha) */
 .mini-tabela-itens thead {
   display: none;
 }
@@ -252,17 +250,45 @@ nav button:hover { background: #dbe4f0; }
 }
 .mini-tabela-itens td {
   padding: 4px 6px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
   font-size: 11px;
   text-align: right;
   white-space: nowrap;
+  background: transparent; /* todos os produtos da mesma venda ficam com a MESMA cor */
 }
 .mini-tabela-itens td:first-child {
   text-align: left;
   white-space: normal;
 }
-.mini-tabela-itens tbody tr:nth-child(even) { background: #f0f4f9; }
-.mini-tabela-itens tbody tr:hover { background: #e2e8f0; }
+
+/* Removido o zebra por produto — todo produto dentro da mesma venda usa a cor do grupo */
+.mini-tabela-itens tbody tr:nth-child(even),
+.mini-tabela-itens tbody tr:hover {
+  background: transparent;
+}
+
+/* ===== MARCADORES DE SCROLL (setas ▲▼) ===== */
+/* Ficam fixos na borda do container, não sobem/desçem junto com o conteúdo */
+.itens-scroll .seta-scroll,
+.itens-scroll .scroll-indicator {
+  position: sticky;
+  right: 2px;
+  z-index: 3;
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  color: #64748b;
+  pointer-events: none;
+  background: inherit;
+}
+.itens-scroll .seta-scroll.topo,
+.itens-scroll .scroll-indicator.topo {
+  top: 0;
+}
+.itens-scroll .seta-scroll.baixo,
+.itens-scroll .scroll-indicator.baixo {
+  bottom: 0;
+}
 
 /* ===== BOTÕES DE AÇÃO (Editar/Excluir) ===== */
 .btn-acao {
@@ -305,7 +331,7 @@ nav button:hover { background: #dbe4f0; }
   cursor: pointer;
 }
 
-/* ===== MODAL (formulário Nova Compra/Venda) ===== */
+/* ===== MODAL ===== */
 .modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
