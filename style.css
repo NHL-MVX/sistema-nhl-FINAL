@@ -189,10 +189,17 @@ nav button:hover { background: #dbe4f0; }
 }
 #tabelaCompras td, #tabelaVendas td {
   padding: 8px 10px;
-  border-bottom: 1px solid #e2e8f0;
   vertical-align: top;
   font-size: 12px;
+  border-bottom: none; /* borda fina removida, usamos separador de bloco abaixo */
 }
+
+/* Separador visual entre cada venda/compra (linha inteira) */
+#tabelaVendas tbody tr,
+#tabelaCompras tbody tr {
+  border-bottom: 4px solid #d7e0ec;
+}
+
 #tabelaCompras tbody tr:nth-child(even),
 #tabelaVendas tbody tr:nth-child(even) {
   background: #f7f9fc;
@@ -221,6 +228,12 @@ nav button:hover { background: #dbe4f0; }
   width: 100%;
   table-layout: fixed;
 }
+
+/* Cabeçalho da mini-tabela oculto (evita repetição por linha) */
+.mini-tabela-itens thead {
+  display: none;
+}
+
 .mini-tabela-itens th {
   background: #5b7aa8;
   color: #fff;
