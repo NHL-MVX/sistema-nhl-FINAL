@@ -34,52 +34,67 @@
 
   <!-- DASHBOARD COMPRAS -->
   <section id="abaDashCompras" class="aba hidden">
-    <h2>Dashboard de Compras</h2>
-    <div id="cardsDashCompras" class="cards-dash"></div>
-    <div class="dash-bloco">
-      <h3>Top Fornecedores</h3>
-      <table class="tabela-dash">
-        <thead><tr><th>Fornecedor</th><th>Total Comprado</th></tr></thead>
-        <tbody id="topFornecedores"></tbody>
-      </table>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>Dashboard de Compras</h2>
+      <button class="btn-exportar" onclick="exportarDashPDF('conteudoDashCompras', 'Dashboard_Compras')">📄 Exportar PDF</button>
+    </div>
+    <div id="conteudoDashCompras">
+      <div id="cardsDashCompras" class="cards-dash"></div>
+      <div class="dash-bloco">
+        <h3>Top Fornecedores</h3>
+        <table class="tabela-dash">
+          <thead><tr><th>Fornecedor</th><th>Total Comprado</th></tr></thead>
+          <tbody id="topFornecedores"></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
   <!-- DASHBOARD VENDAS -->
   <section id="abaDashVendas" class="aba hidden">
-    <h2>Dashboard de Vendas</h2>
-    <div id="cardsDashVendas" class="cards-dash"></div>
-
-    <div class="dash-bloco">
-      <h3>Top Clientes</h3>
-      <table class="tabela-dash">
-        <thead><tr><th>Cliente</th><th>Total Vendido</th></tr></thead>
-        <tbody id="topClientes"></tbody>
-      </table>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>Dashboard de Vendas</h2>
+      <button class="btn-exportar" onclick="exportarDashPDF('conteudoDashVendas', 'Dashboard_Vendas')">📄 Exportar PDF</button>
     </div>
+    <div id="conteudoDashVendas">
+      <div id="cardsDashVendas" class="cards-dash"></div>
 
-    <div class="dash-bloco">
-      <h3>Faturamento por Item</h3>
-      <table class="tabela-dash">
-        <thead>
-          <tr>
-            <th>Produto</th>
-            <th>Qtd Vendida</th>
-            <th>Faturamento</th>
-            <th>Custo Total</th>
-            <th>Lucro Bruto</th>
-            <th>Margem %</th>
-          </tr>
-        </thead>
-        <tbody id="faturamentoItens"></tbody>
-      </table>
+      <div class="dash-bloco">
+        <h3>Top Clientes</h3>
+        <table class="tabela-dash">
+          <thead><tr><th>Cliente</th><th>Total Vendido</th></tr></thead>
+          <tbody id="topClientes"></tbody>
+        </table>
+      </div>
+
+      <div class="dash-bloco">
+        <h3>Faturamento por Item</h3>
+        <table class="tabela-dash">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Qtd Vendida</th>
+              <th>Faturamento</th>
+              <th>Custo Total</th>
+              <th>Lucro Bruto</th>
+              <th>Margem %</th>
+            </tr>
+          </thead>
+          <tbody id="faturamentoItens"></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
   <!-- ABA COMPRAS -->
   <section id="abaCompras" class="aba hidden">
-    <h2>Compras</h2>
-    <button onclick="abrirFormCompra()">+ Nova Compra</button>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>Compras</h2>
+      <div>
+        <button onclick="abrirFormCompra()">+ Nova Compra</button>
+        <button class="btn-exportar" onclick="exportarExcel('tabelaCompras', 'Compras')">📊 Exportar Excel</button>
+      </div>
+    </div>
     <table id="tabelaCompras">
       <thead>
         <tr>
@@ -95,8 +110,13 @@
 
   <!-- ABA VENDAS -->
   <section id="abaVendas" class="aba hidden">
-    <h2>Vendas FOB</h2>
-    <button onclick="abrirFormVenda()">+ Nova Venda</button>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>Vendas FOB</h2>
+      <div>
+        <button onclick="abrirFormVenda()">+ Nova Venda</button>
+        <button class="btn-exportar" onclick="exportarExcel('tabelaVendas', 'Vendas')">📊 Exportar Excel</button>
+      </div>
+    </div>
     <table id="tabelaVendas">
       <thead>
         <tr>
@@ -121,6 +141,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="app.js"></script>
 
 </body>
